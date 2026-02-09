@@ -5,7 +5,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "module": "CommonJS",
-    "moduleResolution": "Node",
+    "moduleResolution": "Node16",
     "lib": ["es2022", "dom"],
     "types": ["node", "electron"],
     "jsx": "react-jsx"

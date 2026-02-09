@@ -1,32 +1,38 @@
-import { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from "electron";
+import fs from "node:fs";
 import path from "node:path";
 import { GhostingController } from "./ghosting";
 import { registerGhostingHotkey } from "./hotkey";
 import {
-  loadSettings,
   getDefaultSettings,
+  loadSettings,
   updateSettings,
+  type GhostingShortcut,
   type GhosttypeSettings,
   type GhosttypeSettingsUpdate,
-  type GhostingShortcut
 } from "./settings";
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let unregisterHotkey: (() => void) | null = null;
 let isQuitting = false;
-let trayIcons: { idle: Electron.NativeImage; recording: Electron.NativeImage } | null = null;
+let trayIcons: {
+  idle: Electron.NativeImage;
+  recording: Electron.NativeImage;
+} | null = null;
 let settings: GhosttypeSettings | null = null;
 let isCapturingShortcut = false;
 
 const isDev = !app.isPackaged;
 
 function resolveRendererUrl() {
-  if (isDev) {
-    return "http://localhost:3000";
+  const staticPath = path.join(app.getAppPath(), "out", "index.html");
+
+  if (app.isPackaged || fs.existsSync(staticPath)) {
+    return `file://${staticPath}`;
   }
 
-  return `file://${path.join(app.getAppPath(), "out", "index.html")}`;
+  return "http://localhost:3000";
 }
 
 function resolveAppResourcePath(...segments: string[]) {
@@ -45,8 +51,8 @@ function createMainWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      preload: path.join(__dirname, "preload.js")
-    }
+      preload: path.join(__dirname, "preload.js"),
+    },
   });
 
   win.setMenuBarVisibility(false);
@@ -67,7 +73,7 @@ function loadTrayIcon(name: string) {
   const icon = nativeImage.createFromPath(iconPath);
   if (icon.isEmpty()) {
     return nativeImage.createFromDataURL(
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO0n4dQAAAAASUVORK5CYII="
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO0n4dQAAAAASUVORK5CYII=",
     );
   }
   icon.setTemplateImage(true);
@@ -77,7 +83,7 @@ function loadTrayIcon(name: string) {
 function createTray() {
   trayIcons = {
     idle: loadTrayIcon("trayTemplate.png"),
-    recording: loadTrayIcon("trayRecordingTemplate.png")
+    recording: loadTrayIcon("trayRecordingTemplate.png"),
   };
 
   tray = new Tray(trayIcons.idle);
@@ -102,8 +108,8 @@ function createTray() {
       click: () => {
         isQuitting = true;
         app.quit();
-      }
-    }
+      },
+    },
   ]);
 
   tray.setToolTip("GhostType");
@@ -122,7 +128,10 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle("ghosting:get-state", () => controller.getState());
   ipcMain.handle("ghosting:start", () => controller.startGhosting());
   ipcMain.handle("ghosting:stop", () => controller.stopGhosting());
-  ipcMain.handle("ghosting:get-settings", () => settings ?? getDefaultSettings());
+  ipcMain.handle(
+    "ghosting:get-settings",
+    () => settings ?? getDefaultSettings(),
+  );
   ipcMain.handle(
     "ghosting:update-settings",
     async (_event, patch: GhosttypeSettingsUpdate) => {
@@ -132,7 +141,7 @@ function setupIpc(controller: GhostingController) {
       settings = await updateSettings(settings, patch);
       notifySettings(settings);
       return settings;
-    }
+    },
   );
   ipcMain.handle("ghosting:start-shortcut-capture", () => {
     isCapturingShortcut = true;
@@ -166,11 +175,12 @@ app.whenReady().then(async () => {
     (state) => {
       mainWindow?.webContents.send("ghosting:state", state);
       if (tray && trayIcons) {
-        const icon = state.phase === "recording" ? trayIcons.recording : trayIcons.idle;
+        const icon =
+          state.phase === "recording" ? trayIcons.recording : trayIcons.idle;
         tray.setImage(icon);
       }
     },
-    () => settings ?? getDefaultSettings()
+    () => settings ?? getDefaultSettings(),
   );
 
   setupIpc(controller);
@@ -183,7 +193,7 @@ app.whenReady().then(async () => {
       void commitShortcut(shortcut);
     },
     onStart: () => controller.startGhosting(),
-    onStop: () => controller.stopGhosting()
+    onStop: () => controller.stopGhosting(),
   });
 });
 

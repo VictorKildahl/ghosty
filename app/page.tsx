@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import type {
   GhostingPhase,
+  GhostingShortcut,
   GhostingState,
   GhosttypeSettings,
-  GhostingShortcut
 } from "@/types/ghosttype";
+import { useEffect, useState } from "react";
 
 type SettingsError = string | null;
 
@@ -15,7 +15,7 @@ const phaseLabels: Record<GhostingPhase, string> = {
   recording: "Ghosting",
   transcribing: "Transcribing",
   cleaning: "Cleaning",
-  error: "Error"
+  error: "Error",
 };
 
 function formatShortcut(shortcut: GhostingShortcut | null) {
@@ -34,7 +34,7 @@ export default function Page() {
     phase: "idle",
     lastGhostedText: "",
     lastRawText: "",
-    error: null
+    error: null,
   });
   const [settings, setSettings] = useState<GhosttypeSettings | null>(null);
   const [settingsError, setSettingsError] = useState<SettingsError>(null);
@@ -48,8 +48,14 @@ export default function Page() {
       return;
     }
     setApiReady(true);
-    window.ghosttype.getState().then(setState).catch(() => undefined);
-    window.ghosttype.getSettings().then(setSettings).catch(() => undefined);
+    window.ghosttype
+      .getState()
+      .then(setState)
+      .catch(() => undefined);
+    window.ghosttype
+      .getSettings()
+      .then(setSettings)
+      .catch(() => undefined);
     const unsubscribeState = window.ghosttype.onGhostingState(setState);
     const unsubscribeSettings = window.ghosttype.onSettings((next) => {
       setSettings(next);
@@ -66,27 +72,26 @@ export default function Page() {
     };
   }, []);
 
-  const statusTone = useMemo(() => {
+  const statusTone = (() => {
     if (state.phase === "recording") return "text-moss";
     if (state.phase === "error") return "text-ember";
     return "text-ink";
-  }, [state.phase]);
+  })();
 
-  const updateSettings = async (patch: {
-    autoPaste?: boolean;
-  }) => {
+  async function updateSettings(patch: { autoPaste?: boolean }) {
     if (!window.ghosttype) return;
     try {
       const next = await window.ghosttype.updateSettings(patch);
       setSettings(next);
       setSettingsError(null);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to save settings.";
+      const message =
+        error instanceof Error ? error.message : "Unable to save settings.";
       setSettingsError(message);
     }
-  };
+  }
 
-  const beginShortcutCapture = async () => {
+  async function beginShortcutCapture() {
     if (!window.ghosttype) return;
     try {
       await window.ghosttype.startShortcutCapture();
@@ -95,17 +100,19 @@ export default function Page() {
       setSettingsError(null);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to start shortcut capture.";
+        error instanceof Error
+          ? error.message
+          : "Unable to start shortcut capture.";
       setSettingsError(message);
     }
-  };
+  }
 
-  const endShortcutCapture = async () => {
+  async function endShortcutCapture() {
     if (!window.ghosttype) return;
     await window.ghosttype.stopShortcutCapture();
     setShortcutCapture(false);
     setCapturePreview("Press new shortcut...");
-  };
+  }
 
   return (
     <section className="ghosttype-surface flex flex-col gap-6">
@@ -115,7 +122,8 @@ export default function Page() {
         <p className="text-sm text-ink/70">
           Hold{" "}
           <span className="ghosttype-code">
-            {formatShortcut(settings?.shortcut ?? null) || "Cmd + Shift + Space"}
+            {formatShortcut(settings?.shortcut ?? null) ||
+              "Cmd + Shift + Space"}
           </span>{" "}
           to ghost. Release to transcribe, clean, and paste.
         </p>

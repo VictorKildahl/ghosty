@@ -1,6 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-parchment: #f4f1ea;
+  --color-ink: #1c242b;
+  --color-moss: #2f6f5e;
+  --color-clay: #d9c5ad;
+  --color-ember: #d6764b;
+  --shadow-soft: 0 12px 40px rgba(28, 36, 43, 0.14);
+  --radius-xl: 18px;
+}
 
 :root {
   color-scheme: light;
