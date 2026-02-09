@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: transparent;
+        user-select: none;
+        -webkit-app-region: no-drag;
+        font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+      }
+
+      body {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 10px;
+      }
+
+      /* ─── Idle / tooltip container ─── */
+      #idle-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      #idle-container.hidden {
+        display: none;
+      }
+
+      #tooltip {
+        background: rgba(20, 20, 20, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 11.5px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        padding: 6px 14px;
+        border-radius: 8px;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(4px) scale(0.96);
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        pointer-events: none;
+      }
+      #tooltip.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      #tooltip .key {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 10.5px;
+      }
+      #tooltip .shortcut {
+        color: #c084fc;
+        font-weight: 600;
+      }
+
+      /* Idle pill */
+      #orb {
+        width: 50px;
+        height: 10px;
+        border-radius: 5px;
+        border: 1.5px solid rgba(192, 132, 252, 0.35);
+        background: rgba(20, 20, 20, 0.92);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+        transition: all 0.3s ease;
+        cursor: default;
+      }
+
+      /* ─── Active bar (recording / transcribing / cleaning) ─── */
+      #active-bar {
+        display: none;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 6px;
+        background: rgba(22, 22, 22, 0.94);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 8px 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        position: relative;
+        height: 32px;
+        width: 145px;
+        cursor: default;
+      }
+      #active-bar.visible {
+        display: flex;
+      }
+      #active-bar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(147, 130, 255, 0.2),
+          transparent
+        );
+        animation: shimmer 1.2s ease-in-out infinite;
+      }
+
+      /* Ghost icon */
+      #active-ghost {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+        animation: rec-pulse 1.4s ease-in-out infinite;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Status label */
+      #active-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        text-align: center;
+      }
+
+      /* ─── Error pill ─── */
+      #error-pill {
+        display: none;
+        width: 32px;
+        height: 10px;
+        border-radius: 5px;
+        border: 1.5px solid rgba(248, 113, 113, 0.4);
+        background: linear-gradient(135deg, #f87171, #dc2626);
+        box-shadow: 0 1px 8px rgba(248, 113, 113, 0.3);
+      }
+      #error-pill.visible {
+        display: block;
+      }
+
+      @keyframes rec-pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 200%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Idle state: small pill + hover tooltip -->
+    <div id="idle-container">
+      <div id="tooltip">
+        <span class="key">Hold </span>
+        <span class="shortcut" id="shortcut-label">…</span>
+        <span class="key"> to ghost</span>
+      </div>
+      <div id="orb"></div>
+    </div>
+
+    <!-- Active state: ghosting / transcribing / cleaning -->
+    <div id="active-bar">
+      <img id="active-ghost" src="ghosty-talking.png" alt="" />
+      <span id="active-label">Ghosting…</span>
+    </div>
+
+    <!-- Error state: red pill -->
+    <div id="error-pill"></div>
+
+    <script>
+      const idleContainer = document.getElementById("idle-container");
+      const tooltip = document.getElementById("tooltip");
+      const shortcutLabel = document.getElementById("shortcut-label");
+      const activeBar = document.getElementById("active-bar");
+      const activeLabel = document.getElementById("active-label");
+      const errorPill = document.getElementById("error-pill");
+
+      function formatKey(key) {
+        const map = {
+          Space: "Space",
+          Escape: "Esc",
+          Backspace: "⌫",
+          Delete: "⌦",
+          Enter: "↩",
+          Tab: "⇥",
+          ArrowUp: "↑",
+          ArrowDown: "↓",
+          ArrowLeft: "←",
+          ArrowRight: "→",
+        };
+        if (map[key]) return map[key];
+        if (key.length === 1) return key.toUpperCase();
+        return key.replace(/^Key/, "").replace(/^Digit/, "");
+      }
+
+      function formatShortcut(shortcut) {
+        const parts = [];
+        if (shortcut.meta) parts.push("Cmd");
+        if (shortcut.ctrl) parts.push("Ctrl");
+        if (shortcut.alt) parts.push("Opt");
+        if (shortcut.shift) parts.push("Shift");
+        parts.push(shortcut.key);
+        return parts.join(" + ");
+      }
+
+      let currentPhase = "idle";
+      let nothingHeardTimer = null;
+
+      function applyState(state) {
+        if (!state) return;
+        const phase = state.phase;
+        currentPhase = phase;
+        console.log("[overlay] state:", phase);
+
+        // Clear any pending "nothing heard" timer
+        if (nothingHeardTimer) {
+          clearTimeout(nothingHeardTimer);
+          nothingHeardTimer = null;
+        }
+
+        // Detect blank audio: was active, now idle, no text produced
+        const wasActive = activeBar.classList.contains("visible");
+        const isBlank =
+          wasActive &&
+          phase === "idle" &&
+          !state.lastGhostedText &&
+          !state.lastRawText;
+
+        if (isBlank) {
+          activeLabel.textContent = "Nothing ghosted";
+          // Keep bar visible briefly, then hide
+          nothingHeardTimer = setTimeout(() => {
+            activeBar.classList.remove("visible");
+            idleContainer.classList.remove("hidden");
+            nothingHeardTimer = null;
+          }, 1500);
+          return;
+        }
+
+        // Toggle visibility of each element
+        const isActive =
+          phase === "recording" ||
+          phase === "transcribing" ||
+          phase === "cleaning";
+        idleContainer.classList.toggle("hidden", phase !== "idle");
+        activeBar.classList.toggle("visible", isActive);
+        errorPill.classList.toggle("visible", phase === "error");
+
+        if (phase === "recording") activeLabel.textContent = "Ghosting…";
+        if (phase === "transcribing") activeLabel.textContent = "Ghosting…";
+        if (phase === "cleaning") activeLabel.textContent = "Cleaning up…";
+      }
+
+      function applySettings(settings) {
+        if (!settings?.shortcut) return;
+        console.log("[overlay] settings:", JSON.stringify(settings.shortcut));
+        shortcutLabel.textContent = formatShortcut(settings.shortcut);
+      }
+
+      // Pull initial values on load
+      window.electronOverlay?.getState().then(applyState);
+      window.electronOverlay?.getSettings().then(applySettings);
+
+      // Subscribe to future pushes
+      window.electronOverlay?.onState(applyState);
+      window.electronOverlay?.onSettings(applySettings);
+
+      // Hover on idle pill — show tooltip (only when idle)
+      idleContainer.addEventListener("mouseenter", () => {
+        if (currentPhase !== "idle") return;
+        tooltip.classList.add("visible");
+        window.electronOverlay?.setIgnoreMouse(false);
+      });
+      idleContainer.addEventListener("mouseleave", () => {
+        if (currentPhase !== "idle") return;
+        tooltip.classList.remove("visible");
+        window.electronOverlay?.setIgnoreMouse(true);
+      });
+    </script>
+  </body>
+</html>

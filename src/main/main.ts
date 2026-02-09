@@ -1,4 +1,12 @@
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  nativeImage,
+  screen,
+  Tray,
+} from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { listAudioDevices } from "./audio";
@@ -39,6 +47,7 @@ function loadEnvFile() {
 loadEnvFile();
 
 let mainWindow: BrowserWindow | null = null;
+let overlayWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let unregisterHotkey: (() => void) | null = null;
 let isQuitting = false;
@@ -66,8 +75,8 @@ function resolveAppResourcePath(...segments: string[]) {
 
 function createMainWindow() {
   const win = new BrowserWindow({
-    width: 480,
-    height: 680,
+    width: 600,
+    height: 1100,
     resizable: false,
     show: false,
     backgroundColor: "#f4f1ea",
@@ -92,22 +101,77 @@ function createMainWindow() {
   return win;
 }
 
+const OVERLAY_WIDTH = 300;
+const OVERLAY_HEIGHT = 120;
+
+function createOverlayWindow() {
+  const cursorPoint = screen.getCursorScreenPoint();
+  const activeDisplay = screen.getDisplayNearestPoint(cursorPoint);
+  const { x, y, width, height } = activeDisplay.workArea;
+
+  const win = new BrowserWindow({
+    width: OVERLAY_WIDTH,
+    height: OVERLAY_HEIGHT,
+    x: x + Math.round((width - OVERLAY_WIDTH) / 2),
+    y: y + height - OVERLAY_HEIGHT,
+    transparent: true,
+    frame: false,
+    hasShadow: false,
+    resizable: false,
+    movable: false,
+    focusable: true,
+    skipTaskbar: true,
+    show: false,
+    type: "panel",
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, "overlayPreload.js"),
+    },
+  });
+
+  win.setAlwaysOnTop(true, "floating");
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  win.setIgnoreMouseEvents(true, { forward: true });
+
+  const overlayPath = resolveAppResourcePath("resources", "overlay.html");
+  win.loadFile(overlayPath);
+
+  win.once("ready-to-show", () => {
+    win.showInactive();
+  });
+
+  return win;
+}
+
+function repositionOverlay() {
+  if (!overlayWindow) return;
+  const cursorPoint = screen.getCursorScreenPoint();
+  const activeDisplay = screen.getDisplayNearestPoint(cursorPoint);
+  const { x, y, width, height } = activeDisplay.workArea;
+  overlayWindow.setBounds({
+    x: x + Math.round((width - OVERLAY_WIDTH) / 2),
+    y: y + height - OVERLAY_HEIGHT,
+    width: OVERLAY_WIDTH,
+    height: OVERLAY_HEIGHT,
+  });
+}
+
 function loadTrayIcon(name: string) {
-  const iconPath = resolveAppResourcePath("assets", name);
+  const iconPath = resolveAppResourcePath("public/assets", name);
   const icon = nativeImage.createFromPath(iconPath);
   if (icon.isEmpty()) {
     return nativeImage.createFromDataURL(
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO0n4dQAAAAASUVORK5CYII=",
     );
   }
-  icon.setTemplateImage(true);
-  return icon;
+  return icon.resize({ width: 18, height: 18 });
 }
 
 function createTray() {
   trayIcons = {
-    idle: loadTrayIcon("trayTemplate.png"),
-    recording: loadTrayIcon("trayRecordingTemplate.png"),
+    idle: loadTrayIcon("ghosty.png"),
+    recording: loadTrayIcon("ghosty-talking.png"),
   };
 
   tray = new Tray(trayIcons.idle);
@@ -142,6 +206,7 @@ function createTray() {
 
 function notifySettings(next: GhosttypeSettings) {
   mainWindow?.webContents.send("ghosting:settings", next);
+  overlayWindow?.webContents.send("overlay:settings", next);
 }
 
 function notifyShortcutPreview(preview: string) {
@@ -152,6 +217,7 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle("ghosting:get-state", () => controller.getState());
   ipcMain.handle("ghosting:start", () => controller.startGhosting());
   ipcMain.handle("ghosting:stop", () => controller.stopGhosting());
+  ipcMain.handle("ghosting:cancel", () => controller.cancelGhosting());
   ipcMain.handle(
     "ghosting:get-settings",
     () => settings ?? getDefaultSettings(),
@@ -175,6 +241,15 @@ function setupIpc(controller: GhostingController) {
     isCapturingShortcut = false;
   });
   ipcMain.handle("ghosting:get-audio-devices", () => listAudioDevices());
+
+  ipcMain.on("overlay:set-ignore-mouse", (_event, ignore: boolean) => {
+    if (!overlayWindow) return;
+    if (ignore) {
+      overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+    } else {
+      overlayWindow.setIgnoreMouseEvents(false);
+    }
+  });
 }
 
 async function commitShortcut(shortcut: GhostingShortcut) {
@@ -194,11 +269,21 @@ app.whenReady().then(async () => {
   settings = await loadSettings();
 
   mainWindow = createMainWindow();
+  overlayWindow = createOverlayWindow();
   createTray();
 
   const controller = new GhostingController(
     (state) => {
       mainWindow?.webContents.send("ghosting:state", state);
+      overlayWindow?.webContents.send("overlay:state", state);
+      if (state.phase === "recording") {
+        repositionOverlay();
+        // Recording controls need to be clickable
+        overlayWindow?.setIgnoreMouseEvents(false);
+      } else {
+        // Other phases: click-through with mouse event forwarding
+        overlayWindow?.setIgnoreMouseEvents(true, { forward: true });
+      }
       if (tray && trayIcons) {
         const icon =
           state.phase === "recording" ? trayIcons.recording : trayIcons.idle;
@@ -234,6 +319,8 @@ app.on("before-quit", () => {
   isQuitting = true;
   unregisterHotkey?.();
   tray?.destroy();
+  overlayWindow?.destroy();
+  overlayWindow = null;
   mainWindow = null;
 });
 

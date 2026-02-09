@@ -7,6 +7,7 @@ import type {
   GhostingState,
   GhosttypeSettings,
 } from "@/types/ghosttype";
+import { AI_MODEL_OPTIONS } from "@/types/models";
 import { useEffect, useState } from "react";
 
 type SettingsError = string | null;
@@ -87,6 +88,8 @@ export default function Page() {
   async function updateSettings(patch: {
     autoPaste?: boolean;
     selectedMicrophone?: string | null;
+    aiCleanup?: boolean;
+    aiModel?: string;
   }) {
     if (!window.ghosttype) return;
     try {
@@ -126,8 +129,26 @@ export default function Page() {
   return (
     <section className="ghosttype-surface flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <p className="ghosttype-label">GhostType</p>
-        <h1 className="text-2xl font-semibold text-ink">Ghosting Console</h1>
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={
+              state.phase === "recording" ||
+              state.phase === "transcribing" ||
+              state.phase === "cleaning"
+                ? "assets/ghosty-talking.png"
+                : "assets/ghosty.png"
+            }
+            alt="GhostType"
+            className="h-10 w-10"
+          />
+          <div>
+            <p className="ghosttype-label">GhostType</p>
+            <h1 className="text-2xl font-semibold text-ink">
+              Ghosting Console
+            </h1>
+          </div>
+        </div>
         <p className="text-sm text-ink/70">
           Hold{" "}
           <span className="ghosttype-code">
@@ -221,6 +242,48 @@ export default function Page() {
             </select>
             <span className="text-xs text-ink/60">
               Select which microphone to use for ghosting.
+            </span>
+          </label>
+
+          <div className="flex items-center justify-between gap-3 text-sm text-ink">
+            <span>AI cleanup</span>
+            <button
+              type="button"
+              aria-pressed={settings?.aiCleanup ?? true}
+              aria-label="Toggle AI cleanup"
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                settings?.aiCleanup ? "bg-moss" : "bg-ink/20"
+              }`}
+              onClick={() =>
+                updateSettings({ aiCleanup: !(settings?.aiCleanup ?? true) })
+              }
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  settings?.aiCleanup ? "translate-x-5" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          <label className="flex flex-col gap-2 text-sm text-ink">
+            <span>AI model</span>
+            <select
+              className="rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm focus:outline-none disabled:opacity-40"
+              value={settings?.aiModel ?? "openai/gpt-4o-mini"}
+              disabled={!(settings?.aiCleanup ?? true)}
+              onChange={(event) =>
+                updateSettings({ aiModel: event.target.value })
+              }
+            >
+              {AI_MODEL_OPTIONS.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-ink/60">
+              Faster models reduce latency between speaking and pasting.
             </span>
           </label>
 

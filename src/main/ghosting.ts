@@ -72,23 +72,50 @@ export class GhostingController {
       this.setState({ phase: "transcribing" });
 
       const rawText = await transcribeWithWhisper(session.filePath);
-      this.setState({ phase: "cleaning", lastRawText: rawText });
 
-      if (!rawText) {
-        this.setState({ phase: "idle", lastGhostedText: "" });
+      if (!rawText || rawText.trim() === "[BLANK_AUDIO]") {
+        console.log("[ghosttype] no speech detected, skipping");
+        this.setState({ phase: "idle", lastRawText: "", lastGhostedText: "" });
         return;
       }
 
-      const cleanedText = await cleanupGhostedText(rawText);
-      this.setState({ lastGhostedText: cleanedText, phase: "idle" });
+      this.setState({ phase: "cleaning", lastRawText: rawText });
 
-      const { autoPaste } = this.getSettings();
-      await applyGhostedText(cleanedText, { autoPaste });
+      const { autoPaste, aiCleanup, aiModel } = this.getSettings();
+      let finalText: string;
+
+      if (aiCleanup) {
+        finalText = await cleanupGhostedText(rawText, aiModel);
+      } else {
+        console.log("[ghosttype] ai cleanup skipped");
+        finalText = rawText;
+      }
+
+      this.setState({ lastGhostedText: finalText, phase: "idle" });
+      await applyGhostedText(finalText, { autoPaste });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       this.setState({ phase: "error", error: message });
     } finally {
       await fs.rm(session.filePath, { force: true });
     }
+  }
+
+  async cancelGhosting() {
+    if (this.state.phase !== "recording" || !this.recordingSession) return;
+
+    const session = this.recordingSession;
+    this.recordingSession = null;
+
+    try {
+      await stopRecording(session);
+    } catch {
+      // ignore errors during cancel
+    } finally {
+      await fs.rm(session.filePath, { force: true });
+    }
+
+    console.log("[ghosttype] recording cancelled");
+    this.setState({ phase: "idle", error: null });
   }
 }

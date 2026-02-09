@@ -38,12 +38,16 @@ export type GhosttypeSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut;
   selectedMicrophone: string | null;
+  aiCleanup: boolean;
+  aiModel: string;
 };
 
 export type GhosttypeSettingsUpdate = {
   autoPaste?: boolean;
   shortcut?: GhostingShortcutInput | GhostingShortcut;
   selectedMicrophone?: string | null;
+  aiCleanup?: boolean;
+  aiModel?: string;
 };
 
 export type GhostTypeAPI = {

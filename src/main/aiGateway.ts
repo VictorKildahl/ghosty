@@ -1,40 +1,24 @@
 import { createGateway } from "@ai-sdk/gateway";
 import { generateText } from "ai";
 
-const CLEANUP_SYSTEM_PROMPT = `You are a developer speech transcription cleanup engine.
+const CLEANUP_SYSTEM_PROMPT = `You are a transcription cleanup tool. The user message contains raw speech-to-text output. Your ONLY job is to return the cleaned version of that text. Never reply conversationally. Never ask questions. Never refuse. Always return cleaned text.
 
-Your job is NOT to paraphrase.
-Your job is to faithfully convert spoken developer language into correct written technical text.
+Cleanup rules:
+- If the speaker corrects themselves, keep ONLY the correction. Example: "we should use map actually no use filter instead" → "we should use filter instead"
+- Remove stutters and repeated words. Example: "the the component" → "the component"
+- Remove filler sounds: um, uh, hmm, like (when used as filler, not meaning). Example: "so um I think we should uh refactor this" → "so I think we should refactor this"
+- Fix obvious transcription typos of technical terms. Example: "reacked" → "React"
 
-Rules:
-- Remove false starts, filler words, and verbal corrections.
-- If the speaker corrects themselves, keep ONLY the corrected version.
-- Preserve all technical terminology exactly.
-- Do NOT simplify or reword technical phrases.
+Do NOT rephrase, summarize, shorten, or change sentence structure beyond the rules above.
+Preserve all technical terms, casing, file paths, and code symbols exactly.
+Output the cleaned text only. Nothing else.`;
 
-Technical handling rules:
-- Preserve programming languages, frameworks, libraries, and tools exactly
-  (e.g. React, Next.js, TypeScript, Tailwind, Electron, Node.js, npm, pnpm).
-- Preserve camelCase, PascalCase, kebab-case, snake_case, and dot.notation.
-- Preserve file paths, file names, and extensions.
-- Preserve code-like phrases and symbols when spoken.
-- Prefer common developer spellings over natural language.
-- When ambiguity exists, choose the most likely developer interpretation.
+const DEFAULT_MODEL = "google/gemini-2.0-flash";
 
-Formatting rules:
-- Output plain text only.
-- No emojis.
-- No explanations.
-- No markdown unless explicitly dictated.
-- Do not add or remove content beyond cleanup.
-
-You may fix grammar ONLY if it does not alter technical meaning.
-
-Return only the cleaned ghosted text.`;
-
-const GATEWAY_MODEL = "openai/gpt-5-nano";
-
-export async function cleanupGhostedText(text: string): Promise<string> {
+export async function cleanupGhostedText(
+  text: string,
+  model?: string | null,
+): Promise<string> {
   const apiKey =
     process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_AI_API_KEY;
   if (!apiKey) {
@@ -50,15 +34,25 @@ export async function cleanupGhostedText(text: string): Promise<string> {
     baseURL,
   });
 
+  const selectedModel = model || DEFAULT_MODEL;
+  console.log("[ghosttype] using model →", selectedModel);
+
+  const t0 = performance.now();
   const result = await generateText({
-    model: gateway(GATEWAY_MODEL),
+    model: gateway(selectedModel),
     system: CLEANUP_SYSTEM_PROMPT,
-    prompt: text,
-    temperature: 0,
+    prompt: `[TRANSCRIPTION START]\n${text}\n[TRANSCRIPTION END]`,
+    temperature: 0.2,
+    maxOutputTokens: 1024,
   });
+  const elapsed = Math.round(performance.now() - t0);
 
   const cleaned = result.text?.trim();
-  console.log("[ghosttype] ai cleanup       →", cleaned ?? "(empty)");
+  console.log(
+    "[ghosttype] ai cleanup       →",
+    cleaned ?? "(empty)",
+    `(${elapsed}ms)`,
+  );
 
   if (!cleaned) {
     throw new Error("Vercel AI Gateway returned empty ghosted text.");

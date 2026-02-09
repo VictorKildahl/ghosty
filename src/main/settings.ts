@@ -24,12 +24,16 @@ export type GhosttypeSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut;
   selectedMicrophone: string | null;
+  aiCleanup: boolean;
+  aiModel: string;
 };
 
 export type GhosttypeSettingsUpdate = {
   autoPaste?: boolean;
   shortcut?: GhostingShortcutInput | GhostingShortcut;
   selectedMicrophone?: string | null;
+  aiCleanup?: boolean;
+  aiModel?: string;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -43,6 +47,8 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
     ctrl: false,
   },
   selectedMicrophone: null,
+  aiCleanup: true,
+  aiModel: "google/gemini-2.0-flash",
 };
 
 const MODIFIER_CODES = new Set([
@@ -281,7 +287,17 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? record.selectedMicrophone
       : null;
 
-  return { autoPaste, shortcut, selectedMicrophone };
+  const aiCleanup =
+    typeof record.aiCleanup === "boolean"
+      ? record.aiCleanup
+      : DEFAULT_SETTINGS.aiCleanup;
+
+  const aiModel =
+    typeof record.aiModel === "string" && record.aiModel.trim()
+      ? record.aiModel
+      : DEFAULT_SETTINGS.aiModel;
+
+  return { autoPaste, shortcut, selectedMicrophone, aiCleanup, aiModel };
 }
 
 function settingsPath() {
@@ -317,6 +333,8 @@ export async function updateSettings(
       patch.selectedMicrophone !== undefined
         ? patch.selectedMicrophone
         : current.selectedMicrophone,
+    aiCleanup: patch.aiCleanup ?? current.aiCleanup,
+    aiModel: patch.aiModel ?? current.aiModel,
   };
 
   await saveSettings(next);
