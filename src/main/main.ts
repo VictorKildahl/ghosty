@@ -9,6 +9,7 @@ import {
 } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { AI_MODEL_OPTIONS } from "../../types/models";
 import { listAudioDevices } from "./audio";
 import { GhostingController } from "./ghosting";
 import { registerGhostingHotkey } from "./hotkey";
@@ -75,12 +76,13 @@ function resolveAppResourcePath(...segments: string[]) {
 
 function createMainWindow() {
   const win = new BrowserWindow({
-    width: 600,
-    height: 1100,
-    resizable: false,
+    width: 1000,
+    height: 800,
+    resizable: true,
     show: false,
-    backgroundColor: "#f4f1ea",
+    backgroundColor: "#ffffff",
     title: "GhostType",
+    icon: resolveAppResourcePath("public/assets", "ghosty-dock.png"),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -88,15 +90,16 @@ function createMainWindow() {
     },
   });
 
-  win.setMenuBarVisibility(false);
-
-  win.on("close", (event) => {
-    if (isQuitting) return;
-    event.preventDefault();
-    win.hide();
+  win.on("close", () => {
+    isQuitting = true;
+    app.quit();
   });
 
   win.loadURL(resolveRendererUrl());
+
+  win.once("ready-to-show", () => {
+    win.show();
+  });
 
   return win;
 }
@@ -168,6 +171,8 @@ function loadTrayIcon(name: string) {
   return icon.resize({ width: 18, height: 18 });
 }
 
+let cachedAudioDevices: { index: number; name: string }[] = [];
+
 function createTray() {
   trayIcons = {
     idle: loadTrayIcon("ghosty.png"),
@@ -187,9 +192,81 @@ function createTray() {
   };
 
   tray.on("click", toggleWindow);
+  tray.setToolTip("GhostType");
+
+  // Cache audio devices and build menu
+  listAudioDevices()
+    .then((devices) => {
+      cachedAudioDevices = devices;
+      rebuildTrayMenu();
+    })
+    .catch(() => rebuildTrayMenu());
+}
+
+function rebuildTrayMenu() {
+  if (!tray) return;
+
+  const currentSettings = settings ?? getDefaultSettings();
+
+  const toggleWindow = () => {
+    if (!mainWindow) return;
+    if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  };
+
+  const micSubmenu: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: "Default (device :0)",
+      type: "radio",
+      checked: !currentSettings.selectedMicrophone,
+      click: async () => {
+        if (!settings) settings = await loadSettings();
+        settings = await updateSettings(settings, {
+          selectedMicrophone: null,
+        });
+        notifySettings(settings);
+        rebuildTrayMenu();
+      },
+    },
+    ...cachedAudioDevices.map(
+      (device): Electron.MenuItemConstructorOptions => ({
+        label: device.name,
+        type: "radio",
+        checked: currentSettings.selectedMicrophone === device.name,
+        click: async () => {
+          if (!settings) settings = await loadSettings();
+          settings = await updateSettings(settings, {
+            selectedMicrophone: device.name,
+          });
+          notifySettings(settings);
+          rebuildTrayMenu();
+        },
+      }),
+    ),
+  ];
+
+  const modelSubmenu: Electron.MenuItemConstructorOptions[] =
+    AI_MODEL_OPTIONS.map((model) => ({
+      label: model.label,
+      type: "radio" as const,
+      checked: currentSettings.aiModel === model.id,
+      click: async () => {
+        if (!settings) settings = await loadSettings();
+        settings = await updateSettings(settings, { aiModel: model.id });
+        notifySettings(settings);
+        rebuildTrayMenu();
+      },
+    }));
 
   const menu = Menu.buildFromTemplate([
-    { label: "Toggle GhostType", click: toggleWindow },
+    { label: "Open GhostType", click: toggleWindow },
+    { type: "separator" },
+    { label: "Microphone", submenu: micSubmenu },
+    { label: "AI Model", submenu: modelSubmenu },
     { type: "separator" },
     {
       label: "Quit",
@@ -200,13 +277,13 @@ function createTray() {
     },
   ]);
 
-  tray.setToolTip("GhostType");
   tray.setContextMenu(menu);
 }
 
 function notifySettings(next: GhosttypeSettings) {
   mainWindow?.webContents.send("ghosting:settings", next);
   overlayWindow?.webContents.send("overlay:settings", next);
+  rebuildTrayMenu();
 }
 
 function notifyShortcutPreview(preview: string) {
@@ -263,8 +340,54 @@ async function commitShortcut(shortcut: GhostingShortcut) {
 }
 
 app.whenReady().then(async () => {
-  app.dock?.hide();
-  Menu.setApplicationMenu(null);
+  // Show in dock like a normal macOS app
+  if (app.dock) {
+    await app.dock.show();
+    const dockIcon = nativeImage.createFromPath(
+      resolveAppResourcePath("public/assets", "ghosty-dock.png"),
+    );
+    if (!dockIcon.isEmpty()) {
+      app.dock.setIcon(dockIcon);
+    }
+  }
+
+  // Standard macOS application menu
+  const appMenu = Menu.buildFromTemplate([
+    {
+      label: app.name,
+      submenu: [
+        { role: "about" },
+        { type: "separator" },
+        { role: "hide" },
+        { role: "hideOthers" },
+        { role: "unhide" },
+        { type: "separator" },
+        { role: "quit" },
+      ],
+    },
+    {
+      label: "Edit",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        { role: "selectAll" },
+      ],
+    },
+    {
+      label: "Window",
+      submenu: [
+        { role: "minimize" },
+        { role: "zoom" },
+        { type: "separator" },
+        { role: "front" },
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(appMenu);
 
   settings = await loadSettings();
 
@@ -325,5 +448,7 @@ app.on("before-quit", () => {
 });
 
 app.on("window-all-closed", () => {
-  // Prevent app from quitting when all windows are closed.
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });
