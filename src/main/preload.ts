@@ -1,21 +1,36 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { AudioDevice, GhostingState, GhosttypeSettings, GhosttypeSettingsUpdate } from "../../types/ghosttype";
+import type {
+  AudioDevice,
+  GhostingState,
+  GhosttypeSettings,
+  GhosttypeSettingsUpdate,
+} from "../../types/ghosttype";
 
 const api = {
-  getState: () => ipcRenderer.invoke("ghosting:get-state") as Promise<GhostingState>,
+  getState: () =>
+    ipcRenderer.invoke("ghosting:get-state") as Promise<GhostingState>,
   startGhosting: () => ipcRenderer.invoke("ghosting:start"),
   stopGhosting: () => ipcRenderer.invoke("ghosting:stop"),
   getSettings: () =>
     ipcRenderer.invoke("ghosting:get-settings") as Promise<GhosttypeSettings>,
   updateSettings: (patch: GhosttypeSettingsUpdate) =>
-    ipcRenderer.invoke("ghosting:update-settings", patch) as Promise<GhosttypeSettings>,
+    ipcRenderer.invoke(
+      "ghosting:update-settings",
+      patch,
+    ) as Promise<GhosttypeSettings>,
   getAudioDevices: () =>
     ipcRenderer.invoke("ghosting:get-audio-devices") as Promise<AudioDevice[]>,
   startShortcutCapture: () =>
-    ipcRenderer.invoke("ghosting:start-shortcut-capture") as Promise<GhosttypeSettings>,
-  stopShortcutCapture: () => ipcRenderer.invoke("ghosting:stop-shortcut-capture"),
+    ipcRenderer.invoke(
+      "ghosting:start-shortcut-capture",
+    ) as Promise<GhosttypeSettings>,
+  stopShortcutCapture: () =>
+    ipcRenderer.invoke("ghosting:stop-shortcut-capture"),
   onGhostingState: (callback: (state: GhostingState) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, state: GhostingState) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      state: GhostingState,
+    ) => {
       callback(state);
     };
 
@@ -28,7 +43,7 @@ const api = {
   onSettings: (callback: (settings: GhosttypeSettings) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      settings: GhosttypeSettings
+      settings: GhosttypeSettings,
     ) => {
       callback(settings);
     };
@@ -49,7 +64,7 @@ const api = {
     return () => {
       ipcRenderer.removeListener("ghosting:shortcut-preview", listener);
     };
-  }
+  },
 };
 
 contextBridge.exposeInMainWorld("ghosttype", api);

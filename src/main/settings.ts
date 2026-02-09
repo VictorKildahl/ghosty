@@ -40,9 +40,9 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
     meta: true,
     shift: true,
     alt: false,
-    ctrl: false
+    ctrl: false,
   },
-  selectedMicrophone: null
+  selectedMicrophone: null,
 };
 
 const MODIFIER_CODES = new Set([
@@ -53,7 +53,7 @@ const MODIFIER_CODES = new Set([
   "AltLeft",
   "AltRight",
   "MetaLeft",
-  "MetaRight"
+  "MetaRight",
 ]);
 
 const MODIFIER_KEYCODES: Set<number> = new Set([
@@ -64,7 +64,7 @@ const MODIFIER_KEYCODES: Set<number> = new Set([
   UiohookKey.Alt,
   UiohookKey.AltRight,
   UiohookKey.Ctrl,
-  UiohookKey.CtrlRight
+  UiohookKey.CtrlRight,
 ]);
 
 const SPECIAL_KEYS: Record<string, { key: string; keycode: number }> = {
@@ -93,7 +93,7 @@ const SPECIAL_KEYS: Record<string, { key: string; keycode: number }> = {
   Backquote: { key: "`", keycode: UiohookKey.Backquote },
   Comma: { key: ",", keycode: UiohookKey.Comma },
   Period: { key: ".", keycode: UiohookKey.Period },
-  Slash: { key: "/", keycode: UiohookKey.Slash }
+  Slash: { key: "/", keycode: UiohookKey.Slash },
 };
 
 const DIGIT_KEYCODES: Record<string, number> = {
@@ -106,7 +106,7 @@ const DIGIT_KEYCODES: Record<string, number> = {
   "6": (UiohookKey as Record<string, number>)["6"],
   "7": (UiohookKey as Record<string, number>)["7"],
   "8": (UiohookKey as Record<string, number>)["8"],
-  "9": (UiohookKey as Record<string, number>)["9"]
+  "9": (UiohookKey as Record<string, number>)["9"],
 };
 
 const KEYCODE_LABELS: Record<number, string> = {
@@ -135,7 +135,7 @@ const KEYCODE_LABELS: Record<number, string> = {
   [UiohookKey.Backquote]: "`",
   [UiohookKey.Comma]: ",",
   [UiohookKey.Period]: ".",
-  [UiohookKey.Slash]: "/"
+  [UiohookKey.Slash]: "/",
 };
 
 for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
@@ -162,7 +162,7 @@ function resolveShortcut(input: GhostingShortcutInput): GhostingShortcut {
     meta: input.meta,
     shift: input.shift,
     alt: input.alt,
-    ctrl: input.ctrl
+    ctrl: input.ctrl,
   };
 
   let resolved = SPECIAL_KEYS[input.code];
@@ -193,7 +193,8 @@ function resolveShortcut(input: GhostingShortcutInput): GhostingShortcut {
     throw new Error("Unsupported key. Use letters, numbers, or common keys.");
   }
 
-  const hasModifier = modifiers.meta || modifiers.shift || modifiers.alt || modifiers.ctrl;
+  const hasModifier =
+    modifiers.meta || modifiers.shift || modifiers.alt || modifiers.ctrl;
   if (!hasModifier && resolved.key.length === 1) {
     throw new Error("Add at least one modifier (Cmd, Ctrl, Opt, Shift).");
   }
@@ -201,12 +202,12 @@ function resolveShortcut(input: GhostingShortcutInput): GhostingShortcut {
   return {
     key: resolved.key,
     keycode: resolved.keycode,
-    ...modifiers
+    ...modifiers,
   };
 }
 
 function isResolvedShortcut(
-  shortcut: GhostingShortcutInput | GhostingShortcut
+  shortcut: GhostingShortcutInput | GhostingShortcut,
 ): shortcut is GhostingShortcut {
   return (shortcut as GhostingShortcut).keycode !== undefined;
 }
@@ -217,7 +218,7 @@ export function isModifierKeycode(keycode: number) {
 
 export function formatShortcutPreview(
   modifiers: { meta: boolean; shift: boolean; alt: boolean; ctrl: boolean },
-  key?: string
+  key?: string,
 ) {
   const parts: string[] = [];
   if (modifiers.meta) parts.push("Cmd");
@@ -230,7 +231,7 @@ export function formatShortcutPreview(
 
 export function shortcutFromKeycode(
   keycode: number,
-  modifiers: { meta: boolean; shift: boolean; alt: boolean; ctrl: boolean }
+  modifiers: { meta: boolean; shift: boolean; alt: boolean; ctrl: boolean },
 ): GhostingShortcut {
   if (isModifierKeycode(keycode)) {
     throw new Error("Choose a non-modifier key for the shortcut.");
@@ -241,7 +242,8 @@ export function shortcutFromKeycode(
     throw new Error("Unsupported key. Use letters, numbers, or common keys.");
   }
 
-  const hasModifier = modifiers.meta || modifiers.shift || modifiers.alt || modifiers.ctrl;
+  const hasModifier =
+    modifiers.meta || modifiers.shift || modifiers.alt || modifiers.ctrl;
   if (!hasModifier && key.length === 1) {
     throw new Error("Add at least one modifier (Cmd, Ctrl, Opt, Shift).");
   }
@@ -249,7 +251,7 @@ export function shortcutFromKeycode(
   return {
     key,
     keycode,
-    ...modifiers
+    ...modifiers,
   };
 }
 
@@ -258,10 +260,13 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
   const record = raw as Record<string, unknown>;
 
   const autoPaste =
-    typeof record.autoPaste === "boolean" ? record.autoPaste : DEFAULT_SETTINGS.autoPaste;
+    typeof record.autoPaste === "boolean"
+      ? record.autoPaste
+      : DEFAULT_SETTINGS.autoPaste;
 
   const shortcutRaw = record.shortcut as Partial<GhostingShortcut> | undefined;
-  const shortcut = shortcutRaw &&
+  const shortcut =
+    shortcutRaw &&
     typeof shortcutRaw.key === "string" &&
     typeof shortcutRaw.keycode === "number" &&
     typeof shortcutRaw.meta === "boolean" &&
@@ -299,7 +304,7 @@ export async function saveSettings(settings: GhosttypeSettings) {
 
 export async function updateSettings(
   current: GhosttypeSettings,
-  patch: GhosttypeSettingsUpdate
+  patch: GhosttypeSettingsUpdate,
 ): Promise<GhosttypeSettings> {
   const next: GhosttypeSettings = {
     autoPaste: patch.autoPaste ?? current.autoPaste,
@@ -311,7 +316,7 @@ export async function updateSettings(
     selectedMicrophone:
       patch.selectedMicrophone !== undefined
         ? patch.selectedMicrophone
-        : current.selectedMicrophone
+        : current.selectedMicrophone,
   };
 
   await saveSettings(next);

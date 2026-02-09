@@ -84,7 +84,10 @@ export default function Page() {
     return "text-ink";
   })();
 
-  async function updateSettings(patch: { autoPaste?: boolean; selectedMicrophone?: string | null }) {
+  async function updateSettings(patch: {
+    autoPaste?: boolean;
+    selectedMicrophone?: string | null;
+  }) {
     if (!window.ghosttype) return;
     try {
       const next = await window.ghosttype.updateSettings(patch);

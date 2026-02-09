@@ -51,7 +51,9 @@ export type GhostTypeAPI = {
   startGhosting: () => Promise<void>;
   stopGhosting: () => Promise<void>;
   getSettings: () => Promise<GhosttypeSettings>;
-  updateSettings: (patch: GhosttypeSettingsUpdate) => Promise<GhosttypeSettings>;
+  updateSettings: (
+    patch: GhosttypeSettingsUpdate,
+  ) => Promise<GhosttypeSettings>;
   getAudioDevices: () => Promise<AudioDevice[]>;
   startShortcutCapture: () => Promise<GhosttypeSettings>;
   stopShortcutCapture: () => Promise<void>;

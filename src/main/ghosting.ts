@@ -2,8 +2,8 @@ import fs from "node:fs/promises";
 import { cleanupGhostedText } from "./aiGateway";
 import { startRecording, stopRecording, type RecordingSession } from "./audio";
 import { applyGhostedText } from "./paste";
-import { transcribeWithWhisper } from "./whisper";
 import type { GhosttypeSettings } from "./settings";
+import { transcribeWithWhisper } from "./whisper";
 
 export type GhostingPhase =
   | "idle"
@@ -25,12 +25,12 @@ export class GhostingController {
     phase: "idle",
     lastGhostedText: "",
     lastRawText: "",
-    error: null
+    error: null,
   };
 
   constructor(
     private readonly onState: (state: GhostingState) => void,
-    private readonly getSettings: () => GhosttypeSettings
+    private readonly getSettings: () => GhosttypeSettings,
   ) {}
 
   getState() {

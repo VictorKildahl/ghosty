@@ -1,5 +1,5 @@
 import { app } from "electron";
-import { spawn, execFile, type ChildProcess } from "node:child_process";
+import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
 import fs from "node:fs";
 import os from "node:os";
@@ -21,7 +21,7 @@ function resolveBundledPaths(...segments: string[]) {
   const basePath = app.isPackaged ? process.resourcesPath : app.getAppPath();
   return [
     path.join(basePath, ...segments),
-    path.join(basePath, "resources", ...segments)
+    path.join(basePath, "resources", ...segments),
   ];
 }
 
@@ -32,7 +32,7 @@ function findFirstExisting(paths: string[]) {
 function resolveFfmpegBinary() {
   const bundled = findFirstExisting([
     ...resolveBundledPaths("ffmpeg", "ffmpeg"),
-    ...resolveBundledPaths("ffmpeg", "bin", "ffmpeg")
+    ...resolveBundledPaths("ffmpeg", "bin", "ffmpeg"),
   ]);
 
   return bundled ?? DEFAULT_FFMPEG_BIN;
@@ -68,7 +68,7 @@ export function listAudioDevices(): Promise<AudioDevice[]> {
         }
 
         resolve(devices);
-      }
+      },
     );
 
     proc.on("error", () => resolve([]));
@@ -96,11 +96,11 @@ export function startRecording(microphone?: string | null): RecordingSession {
     "16000",
     "-c:a",
     "pcm_s16le",
-    filePath
+    filePath,
   ];
 
   const process = spawn(ffmpegBin, args, {
-    stdio: "ignore"
+    stdio: "ignore",
   });
 
   return { filePath, process };
