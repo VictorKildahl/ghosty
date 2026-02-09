@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AudioDevice,
   GhostingPhase,
   GhostingShortcut,
   GhostingState,
@@ -41,6 +42,7 @@ export default function Page() {
   const [apiReady, setApiReady] = useState(false);
   const [shortcutCapture, setShortcutCapture] = useState(false);
   const [capturePreview, setCapturePreview] = useState("Press new shortcut...");
+  const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([]);
 
   useEffect(() => {
     if (!window.ghosttype) {
@@ -55,6 +57,10 @@ export default function Page() {
     window.ghosttype
       .getSettings()
       .then(setSettings)
+      .catch(() => undefined);
+    window.ghosttype
+      .getAudioDevices()
+      .then(setAudioDevices)
       .catch(() => undefined);
     const unsubscribeState = window.ghosttype.onGhostingState(setState);
     const unsubscribeSettings = window.ghosttype.onSettings((next) => {
@@ -78,7 +84,7 @@ export default function Page() {
     return "text-ink";
   })();
 
-  async function updateSettings(patch: { autoPaste?: boolean }) {
+  async function updateSettings(patch: { autoPaste?: boolean; selectedMicrophone?: string | null }) {
     if (!window.ghosttype) return;
     try {
       const next = await window.ghosttype.updateSettings(patch);
@@ -190,6 +196,30 @@ export default function Page() {
               />
             </button>
           </div>
+
+          <label className="flex flex-col gap-2 text-sm text-ink">
+            <span>Microphone</span>
+            <select
+              className="rounded-lg border border-ink/20 bg-white px-3 py-2 text-sm focus:outline-none"
+              value={settings?.selectedMicrophone ?? ""}
+              onChange={(event) => {
+                const value = event.target.value;
+                updateSettings({
+                  selectedMicrophone: value === "" ? null : value,
+                });
+              }}
+            >
+              <option value="">Default (device :0)</option>
+              {audioDevices.map((device) => (
+                <option key={device.index} value={device.name}>
+                  {device.name}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-ink/60">
+              Select which microphone to use for ghosting.
+            </span>
+          </label>
 
           <label className="flex flex-col gap-2 text-sm text-ink">
             <span>Ghosting shortcut</span>

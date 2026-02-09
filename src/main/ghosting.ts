@@ -51,7 +51,7 @@ export class GhostingController {
       return;
     }
 
-    const session = startRecording();
+    const session = startRecording(this.getSettings().selectedMicrophone);
     this.recordingSession = session;
     this.setState({ phase: "recording", error: null });
 

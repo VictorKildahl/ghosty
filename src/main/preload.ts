@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { GhostingState, GhosttypeSettings, GhosttypeSettingsUpdate } from "../../types/ghosttype";
+import type { AudioDevice, GhostingState, GhosttypeSettings, GhosttypeSettingsUpdate } from "../../types/ghosttype";
 
 const api = {
   getState: () => ipcRenderer.invoke("ghosting:get-state") as Promise<GhostingState>,
@@ -9,6 +9,8 @@ const api = {
     ipcRenderer.invoke("ghosting:get-settings") as Promise<GhosttypeSettings>,
   updateSettings: (patch: GhosttypeSettingsUpdate) =>
     ipcRenderer.invoke("ghosting:update-settings", patch) as Promise<GhosttypeSettings>,
+  getAudioDevices: () =>
+    ipcRenderer.invoke("ghosting:get-audio-devices") as Promise<AudioDevice[]>,
   startShortcutCapture: () =>
     ipcRenderer.invoke("ghosting:start-shortcut-capture") as Promise<GhosttypeSettings>,
   stopShortcutCapture: () => ipcRenderer.invoke("ghosting:stop-shortcut-capture"),

@@ -1,9 +1,14 @@
 import { app } from "electron";
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, execFile, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
+export type AudioDevice = {
+  index: number;
+  name: string;
+};
 
 export type RecordingSession = {
   filePath: string;
@@ -33,9 +38,48 @@ function resolveFfmpegBinary() {
   return bundled ?? DEFAULT_FFMPEG_BIN;
 }
 
-export function startRecording(): RecordingSession {
+export function listAudioDevices(): Promise<AudioDevice[]> {
+  return new Promise((resolve) => {
+    const ffmpegBin = resolveFfmpegBinary();
+    const proc = execFile(
+      ffmpegBin,
+      ["-hide_banner", "-f", "avfoundation", "-list_devices", "true", "-i", ""],
+      { timeout: 5000 },
+      (_error, _stdout, stderr) => {
+        const output = stderr ?? "";
+        const devices: AudioDevice[] = [];
+        let inAudioSection = false;
+
+        for (const line of output.split("\n")) {
+          if (line.includes("AVFoundation audio devices:")) {
+            inAudioSection = true;
+            continue;
+          }
+          if (line.includes("AVFoundation video devices:")) {
+            inAudioSection = false;
+            continue;
+          }
+          if (inAudioSection) {
+            const match = line.match(/\[(\d+)]\s+(.+)$/);
+            if (match) {
+              devices.push({ index: Number(match[1]), name: match[2].trim() });
+            }
+          }
+        }
+
+        resolve(devices);
+      }
+    );
+
+    proc.on("error", () => resolve([]));
+  });
+}
+
+export function startRecording(microphone?: string | null): RecordingSession {
   const filePath = path.join(os.tmpdir(), `ghosttype-${Date.now()}.wav`);
   const ffmpegBin = resolveFfmpegBinary();
+
+  const audioInput = microphone ? `:${microphone}` : ":0";
 
   const args = [
     "-hide_banner",
@@ -45,7 +89,7 @@ export function startRecording(): RecordingSession {
     "-f",
     "avfoundation",
     "-i",
-    ":0",
+    audioInput,
     "-ac",
     "1",
     "-ar",

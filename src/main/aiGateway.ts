@@ -1,5 +1,5 @@
-import { generateText } from "ai";
 import { createGateway } from "@ai-sdk/gateway";
+import { generateText } from "ai";
 
 const CLEANUP_SYSTEM_PROMPT = `You are a developer speech transcription cleanup engine.
 
@@ -35,25 +35,31 @@ Return only the cleaned ghosted text.`;
 const GATEWAY_MODEL = "openai/gpt-5-nano";
 
 export async function cleanupGhostedText(text: string): Promise<string> {
-  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_AI_API_KEY;
+  const apiKey =
+    process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_AI_API_KEY;
   if (!apiKey) {
     throw new Error("AI_GATEWAY_API_KEY is required for ghosted text cleanup.");
   }
 
-  const baseURL = process.env.AI_GATEWAY_BASE_URL ?? process.env.VERCEL_AI_BASE_URL;
+  console.log("[ghosttype] raw transcription →", text);
+
+  const baseURL =
+    process.env.AI_GATEWAY_BASE_URL ?? process.env.VERCEL_AI_BASE_URL;
   const gateway = createGateway({
     apiKey,
-    baseURL
+    baseURL,
   });
 
   const result = await generateText({
     model: gateway(GATEWAY_MODEL),
     system: CLEANUP_SYSTEM_PROMPT,
     prompt: text,
-    temperature: 0
+    temperature: 0,
   });
 
   const cleaned = result.text?.trim();
+  console.log("[ghosttype] ai cleanup       →", cleaned ?? "(empty)");
+
   if (!cleaned) {
     throw new Error("Vercel AI Gateway returned empty ghosted text.");
   }

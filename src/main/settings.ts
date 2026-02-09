@@ -23,11 +23,13 @@ export type GhostingShortcutInput = {
 export type GhosttypeSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut;
+  selectedMicrophone: string | null;
 };
 
 export type GhosttypeSettingsUpdate = {
   autoPaste?: boolean;
   shortcut?: GhostingShortcutInput | GhostingShortcut;
+  selectedMicrophone?: string | null;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -39,7 +41,8 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
     shift: true,
     alt: false,
     ctrl: false
-  }
+  },
+  selectedMicrophone: null
 };
 
 const MODIFIER_CODES = new Set([
@@ -268,7 +271,12 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? (shortcutRaw as GhostingShortcut)
       : DEFAULT_SETTINGS.shortcut;
 
-  return { autoPaste, shortcut };
+  const selectedMicrophone =
+    typeof record.selectedMicrophone === "string"
+      ? record.selectedMicrophone
+      : null;
+
+  return { autoPaste, shortcut, selectedMicrophone };
 }
 
 function settingsPath() {
@@ -299,7 +307,11 @@ export async function updateSettings(
       ? isResolvedShortcut(patch.shortcut)
         ? patch.shortcut
         : resolveShortcut(patch.shortcut)
-      : current.shortcut
+      : current.shortcut,
+    selectedMicrophone:
+      patch.selectedMicrophone !== undefined
+        ? patch.selectedMicrophone
+        : current.selectedMicrophone
   };
 
   await saveSettings(next);

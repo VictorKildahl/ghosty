@@ -29,14 +29,21 @@ export type GhostingShortcutInput = {
   ctrl: boolean;
 };
 
+export type AudioDevice = {
+  index: number;
+  name: string;
+};
+
 export type GhosttypeSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut;
+  selectedMicrophone: string | null;
 };
 
 export type GhosttypeSettingsUpdate = {
   autoPaste?: boolean;
   shortcut?: GhostingShortcutInput | GhostingShortcut;
+  selectedMicrophone?: string | null;
 };
 
 export type GhostTypeAPI = {
@@ -45,6 +52,7 @@ export type GhostTypeAPI = {
   stopGhosting: () => Promise<void>;
   getSettings: () => Promise<GhosttypeSettings>;
   updateSettings: (patch: GhosttypeSettingsUpdate) => Promise<GhosttypeSettings>;
+  getAudioDevices: () => Promise<AudioDevice[]>;
   startShortcutCapture: () => Promise<GhosttypeSettings>;
   stopShortcutCapture: () => Promise<void>;
   onGhostingState: (callback: (state: GhostingState) => void) => () => void;

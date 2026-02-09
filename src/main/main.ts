@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { listAudioDevices } from "./audio";
 import { GhostingController } from "./ghosting";
 import { registerGhostingHotkey } from "./hotkey";
 import {
@@ -12,6 +13,31 @@ import {
   type GhosttypeSettingsUpdate,
 } from "./settings";
 
+function loadEnvFile() {
+  const root = app.isPackaged ? process.resourcesPath : app.getAppPath();
+  for (const name of [".env.local", ".env"]) {
+    const filePath = path.join(root, name);
+    if (!fs.existsSync(filePath)) continue;
+    for (const line of fs.readFileSync(filePath, "utf8").split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq === -1) continue;
+      const key = trimmed.slice(0, eq).trim();
+      let value = trimmed.slice(eq + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      if (!process.env[key]) process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile();
+
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let unregisterHotkey: (() => void) | null = null;
@@ -22,8 +48,6 @@ let trayIcons: {
 } | null = null;
 let settings: GhosttypeSettings | null = null;
 let isCapturingShortcut = false;
-
-const isDev = !app.isPackaged;
 
 function resolveRendererUrl() {
   const staticPath = path.join(app.getAppPath(), "out", "index.html");
@@ -150,6 +174,7 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle("ghosting:stop-shortcut-capture", () => {
     isCapturingShortcut = false;
   });
+  ipcMain.handle("ghosting:get-audio-devices", () => listAudioDevices());
 }
 
 async function commitShortcut(shortcut: GhostingShortcut) {
