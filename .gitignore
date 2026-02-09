@@ -28,5 +28,8 @@ resources/whisper/whisper-cli
 resources/whisper/models/*.bin
 resources/ffmpeg/ffmpeg
 
+# electron-builder output
+release/
+
 # misc
 *.swp
