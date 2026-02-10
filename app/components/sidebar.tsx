@@ -1,10 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BarChart3, LayoutGrid, MessageSquare, Settings } from "lucide-react";
+import {
+  BarChart3,
+  Book,
+  LayoutGrid,
+  MessageSquare,
+  Settings,
+} from "lucide-react";
 import { SidebarNavButton } from "./sidebar-nav-button";
 
-export type View = "home" | "stats" | "style" | "settings";
+export type View = "home" | "stats" | "style" | "dictionary" | "settings";
 
 export function Sidebar({
   currentView,
@@ -22,10 +28,7 @@ export function Sidebar({
         collapsed ? "w-16" : "w-54",
       )}
     >
-      {/* Traffic-light drag area */}
       <div className="title-bar h-12 shrink-0" />
-
-      {/* Logo */}
       <div className="flex items-center gap-2 overflow-hidden pb-6 pt-4 pl-5">
         <img
           src="assets/ghosty.png"
@@ -42,7 +45,6 @@ export function Sidebar({
         </span>
       </div>
 
-      {/* Nav */}
       <nav className={cn("flex flex-1 flex-col gap-1 px-3")}>
         <SidebarNavButton
           icon={LayoutGrid}
@@ -50,6 +52,13 @@ export function Sidebar({
           active={currentView === "home"}
           collapsed={collapsed}
           onClick={() => onNavigate("home")}
+        />
+        <SidebarNavButton
+          icon={Book}
+          label="Dictionary"
+          active={currentView === "dictionary"}
+          collapsed={collapsed}
+          onClick={() => onNavigate("dictionary")}
         />
         <SidebarNavButton
           icon={BarChart3}

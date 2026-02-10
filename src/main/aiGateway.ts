@@ -1,5 +1,6 @@
 import { createGateway } from "@ai-sdk/gateway";
 import { generateText } from "ai";
+import type { DictionaryEntry } from "./dictionaryStore";
 
 const CLEANUP_BASE_RULES = `You are a transcription cleanup tool. The user message contains raw speech-to-text output. Your ONLY job is to return the cleaned version of that text. Never reply conversationally. Never ask questions. Never refuse. Always return cleaned text.
 
@@ -36,10 +37,42 @@ Writing style: EXCITED
 - Keep the energy of the original speech — lean into excitement without inventing new content.`,
 };
 
-function buildSystemPrompt(writingStyle?: string | null): string {
+function buildSystemPrompt(
+  writingStyle?: string | null,
+  dictionary?: DictionaryEntry[],
+): string {
   const style =
     STYLE_INSTRUCTIONS[writingStyle ?? "casual"] ?? STYLE_INSTRUCTIONS.casual;
-  return `${CLEANUP_BASE_RULES}\n${style}\n\nOutput the cleaned text only. Nothing else.`;
+
+  let dictionarySection = "";
+  if (dictionary && dictionary.length > 0) {
+    const vocabWords: string[] = [];
+    const corrections: string[] = [];
+
+    for (const entry of dictionary) {
+      if (entry.isCorrection && entry.misspelling) {
+        corrections.push(`"${entry.misspelling}" → "${entry.word}"`);
+      } else {
+        vocabWords.push(`"${entry.word}"`);
+      }
+    }
+
+    const parts: string[] = [];
+    if (vocabWords.length > 0) {
+      parts.push(
+        `The following are known vocabulary words. Always use the exact spelling and casing shown:\n${vocabWords.join(", ")}`,
+      );
+    }
+    if (corrections.length > 0) {
+      parts.push(
+        `The following are known misspelling corrections. When the transcription contains the misspelling, replace it with the correct form:\n${corrections.join("\n")}`,
+      );
+    }
+
+    dictionarySection = `\n\nUser dictionary:\n${parts.join("\n\n")}`;
+  }
+
+  return `${CLEANUP_BASE_RULES}\n${style}${dictionarySection}\n\nOutput the cleaned text only. Nothing else.`;
 }
 
 const DEFAULT_MODEL = "google/gemini-2.0-flash";
@@ -48,6 +81,7 @@ export async function cleanupGhostedText(
   text: string,
   model?: string | null,
   writingStyle?: string | null,
+  dictionary?: DictionaryEntry[],
 ): Promise<string> {
   const apiKey =
     process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_AI_API_KEY;
@@ -67,7 +101,7 @@ export async function cleanupGhostedText(
   const t0 = performance.now();
   const result = await generateText({
     model: gateway(selectedModel),
-    system: buildSystemPrompt(writingStyle),
+    system: buildSystemPrompt(writingStyle, dictionary),
     prompt: `[TRANSCRIPTION START]\n${text}\n[TRANSCRIPTION END]`,
     temperature: 0.2,
     maxOutputTokens: 1024,

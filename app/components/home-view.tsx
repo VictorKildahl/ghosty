@@ -13,6 +13,7 @@ import type {
 } from "@/types/ghosttype";
 import { Check, Copy, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { DataTable, RowActionButton } from "./data-table";
 import { PageLayout } from "./page-layout";
 
 export function HomeView({
@@ -266,47 +267,43 @@ export function HomeView({
               </div>
 
               {/* Entries */}
-              <div className="divide-y divide-border rounded-xl border border-border bg-white">
-                {group.entries.map((entry, i) => {
-                  const entryKey = `${group.date}-${i}`;
-                  return (
-                    <div
-                      key={entryKey}
-                      className="group flex items-center gap-6 px-5 py-3 text-sm transition-colors hover:bg-sidebar"
-                    >
-                      <span className="w-20 shrink-0 text-muted">
-                        {formatTime(entry.timestamp)}
-                      </span>
-                      <p className="flex-1 leading-relaxed text-ink">
-                        {entry.text}
-                      </p>
-                      {/* Action buttons — visible on hover */}
-                      <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          type="button"
-                          onClick={() => handleCopyEntry(entry.text, entryKey)}
-                          className="rounded-md p-1.5 text-muted transition hover:bg-sidebar hover:text-ink hover:cursor-pointer"
-                          title="Copy to clipboard"
-                        >
-                          {copiedIndex === entryKey ? (
-                            <Check size={16} className="text-ghosty" />
-                          ) : (
-                            <Copy size={16} />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteEntry(group.date, i)}
-                          className="rounded-md p-1.5 text-muted transition hover:bg-red-50 hover:text-red-500 hover:cursor-pointer"
-                          title="Delete entry"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <DataTable
+                items={group.entries.map((entry, i) => ({
+                  key: `${group.date}-${i}`,
+                  entry,
+                  index: i,
+                  groupDate: group.date,
+                }))}
+                renderContent={(item) => (
+                  <div className="flex items-center gap-6">
+                    <span className="w-20 shrink-0 text-muted">
+                      {formatTime(item.entry.timestamp)}
+                    </span>
+                    <p className="flex-1 leading-relaxed text-ink">
+                      {item.entry.text}
+                    </p>
+                  </div>
+                )}
+                renderActions={(item) => (
+                  <>
+                    <RowActionButton
+                      icon={Copy}
+                      activeIcon={Check}
+                      active={copiedIndex === item.key}
+                      label="Copy to clipboard"
+                      onClick={() => handleCopyEntry(item.entry.text, item.key)}
+                    />
+                    <RowActionButton
+                      icon={Trash2}
+                      label="Delete entry"
+                      variant="danger"
+                      onClick={() =>
+                        handleDeleteEntry(item.groupDate, item.index)
+                      }
+                    />
+                  </>
+                )}
+              />
             </div>
           ))}
         </div>

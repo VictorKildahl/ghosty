@@ -39,6 +39,7 @@ export function useAuth() {
 
   const signUpMutation = useMutation(api.auth.signUp);
   const loginMutation = useMutation(api.auth.login);
+  const seedDictionaryMutation = useMutation(api.dictionary.seed);
 
   // Validate stored session on mount
   const validated = useQuery(
@@ -106,9 +107,19 @@ export function useAuth() {
       };
       setAuth(authState);
       saveAuthToStorage(authState);
+
+      // Seed the dictionary with sensible defaults (name, email, app name, etc.)
+      seedDictionaryMutation({
+        userId: result.userId,
+        email: result.email,
+        name,
+      }).catch(() => {
+        // Best-effort — don't block signup if seeding fails
+      });
+
       return authState;
     },
-    [signUpMutation, getDeviceId],
+    [signUpMutation, seedDictionaryMutation, getDeviceId],
   );
 
   const login = useCallback(

@@ -7,6 +7,7 @@ import {
   stopRecording,
   type RecordingSession,
 } from "./audio";
+import { loadDictionary } from "./dictionaryStore";
 import { applyGhostedText } from "./paste";
 import type { GhosttypeSettings } from "./settings";
 import { transcribeWithWhisper } from "./whisper";
@@ -134,7 +135,13 @@ export class GhostingController {
       let finalText: string;
 
       if (aiCleanup) {
-        finalText = await cleanupGhostedText(rawText, aiModel, writingStyle);
+        const dictionary = await loadDictionary();
+        finalText = await cleanupGhostedText(
+          rawText,
+          aiModel,
+          writingStyle,
+          dictionary,
+        );
       } else {
         console.log("[ghosttype] ai cleanup skipped");
         finalText = rawText;

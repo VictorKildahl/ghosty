@@ -76,6 +76,14 @@ export type LocalTranscript = {
   wordCount: number;
 };
 
+export type DictionaryEntry = {
+  id: string;
+  word: string;
+  isCorrection: boolean;
+  misspelling?: string;
+  createdAt: number;
+};
+
 export type GhostTypeAPI = {
   getState: () => Promise<GhostingState>;
   startGhosting: () => Promise<void>;
@@ -94,6 +102,12 @@ export type GhostTypeAPI = {
   getDeviceId: () => Promise<string>;
   getLocalTranscripts: () => Promise<LocalTranscript[]>;
   deleteLocalTranscript: (timestamp: number) => Promise<void>;
+  getDictionary: () => Promise<DictionaryEntry[]>;
+  addDictionaryEntry: (
+    entry: Omit<DictionaryEntry, "id" | "createdAt">,
+  ) => Promise<DictionaryEntry>;
+  deleteDictionaryEntry: (id: string) => Promise<void>;
+  syncDictionary: (entries: DictionaryEntry[]) => Promise<void>;
   onGhostingState: (callback: (state: GhostingState) => void) => () => void;
   onSettings: (callback: (settings: GhosttypeSettings) => void) => () => void;
   onShortcutPreview: (callback: (preview: string) => void) => () => void;

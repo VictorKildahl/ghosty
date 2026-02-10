@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type {
   AudioDevice,
+  DictionaryEntry,
   GhostingState,
   GhosttypeSettings,
   GhosttypeSettingsUpdate,
@@ -58,6 +59,14 @@ const api = {
       "ghosting:delete-local-transcript",
       timestamp,
     ) as Promise<void>,
+  getDictionary: () =>
+    ipcRenderer.invoke("dictionary:get-all") as Promise<DictionaryEntry[]>,
+  addDictionaryEntry: (entry: Omit<DictionaryEntry, "id" | "createdAt">) =>
+    ipcRenderer.invoke("dictionary:add", entry) as Promise<DictionaryEntry>,
+  deleteDictionaryEntry: (id: string) =>
+    ipcRenderer.invoke("dictionary:delete", id) as Promise<void>,
+  syncDictionary: (entries: DictionaryEntry[]) =>
+    ipcRenderer.invoke("dictionary:sync", entries) as Promise<void>,
   onGhostingState: (callback: (state: GhostingState) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,

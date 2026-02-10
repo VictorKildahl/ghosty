@@ -1,5 +1,6 @@
 "use client";
 
+import { DictionaryView } from "@/app/components/dictionary-view";
 import { Header } from "@/app/components/header";
 import { HomeView } from "@/app/components/home-view";
 import { OnboardingView } from "@/app/components/onboarding-view";
@@ -127,6 +128,7 @@ export default function Page() {
           )}
           {view === "stats" && <StatsView stats={stats} />}
           {view === "style" && <StyleView />}
+          {view === "dictionary" && <DictionaryView userId={auth!.userId} />}
           {view === "settings" && <SettingsView />}
         </div>
       </div>

@@ -22,6 +22,14 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_deviceId", ["deviceId"]),
 
+  dictionaryEntries: defineTable({
+    userId: v.id("users"),
+    word: v.string(),
+    isCorrection: v.boolean(),
+    misspelling: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_userId", ["userId"]),
+
   sessions: defineTable({
     userId: v.id("users"),
     wordCount: v.number(),

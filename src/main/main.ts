@@ -17,6 +17,13 @@ import {
   type MicTestSession,
 } from "./audio";
 import { getDeviceId } from "./deviceId";
+import {
+  addDictionaryEntry,
+  deleteDictionaryEntry,
+  loadDictionary,
+  syncDictionary,
+  type DictionaryEntry,
+} from "./dictionaryStore";
 import { GhostingController } from "./ghosting";
 import { registerGhostingHotkey } from "./hotkey";
 import {
@@ -360,6 +367,22 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle(
     "ghosting:delete-local-transcript",
     (_event, timestamp: number) => deleteLocalTranscript(timestamp),
+  );
+
+  // Dictionary
+  ipcMain.handle("dictionary:get-all", () => loadDictionary());
+  ipcMain.handle(
+    "dictionary:add",
+    (
+      _event,
+      entry: { word: string; isCorrection: boolean; misspelling?: string },
+    ) => addDictionaryEntry(entry),
+  );
+  ipcMain.handle("dictionary:delete", (_event, id: string) =>
+    deleteDictionaryEntry(id),
+  );
+  ipcMain.handle("dictionary:sync", (_event, entries: DictionaryEntry[]) =>
+    syncDictionary(entries),
   );
 
   ipcMain.on("overlay:set-ignore-mouse", (_event, ignore: boolean) => {
