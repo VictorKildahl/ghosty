@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { AudioDevice, GhosttypeSettings } from "@/types/ghosttype";
 import { AI_MODEL_OPTIONS } from "@/types/models";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageLayout } from "./page-layout";
 
 type SettingsError = string | null;
 
@@ -159,20 +160,8 @@ export function SettingsView() {
   }, []);
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
-      <header className="border-b border-border px-8 pt-8 pb-6">
-        <h1 className="text-2xl font-semibold text-ink">Settings</h1>
-        <p className="mt-1 text-sm text-muted">
-          Configure how GhostType works.
-        </p>
-        {!apiReady && (
-          <p className="mt-2 text-xs text-ember">
-            IPC bridge unavailable. Is the preload running?
-          </p>
-        )}
-      </header>
-
-      <div className="flex flex-col divide-y divide-border px-8 py-2">
+    <PageLayout title="Settings" subtitle="Configure how GhostType works.">
+      <div className="flex flex-col divide-y divide-border py-2">
         {/* Auto-paste */}
         <div className="flex items-center justify-between py-4">
           <div>
@@ -408,6 +397,6 @@ export function SettingsView() {
           <p className="text-xs text-ember py-4">{settingsError}</p>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

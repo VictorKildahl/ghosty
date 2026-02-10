@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { PageLayout } from "./page-layout";
 
 export function StatsView({
   stats,
@@ -47,15 +48,8 @@ export function StatsView({
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
-      <header className="border-b border-border px-8 pt-8 pb-6">
-        <h1 className="text-2xl font-semibold text-ink">Stats</h1>
-        <p className="mt-1 text-sm text-muted">
-          Your ghosting activity at a glance.
-        </p>
-      </header>
-
-      <div className="flex flex-col gap-6 px-8 py-6">
+    <PageLayout title="Stats" subtitle="Your ghosting activity at a glance.">
+      <div className="flex flex-col gap-6">
         {/* Stat cards */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col items-center rounded-xl border border-border bg-white p-5">
@@ -159,6 +153,6 @@ export function StatsView({
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

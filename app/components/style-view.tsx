@@ -7,6 +7,7 @@ import type {
   WritingStyle,
 } from "@/types/ghosttype";
 import { useEffect, useState } from "react";
+import { PageLayout } from "./page-layout";
 
 /* ── Tab definitions ────────────────────────────────────────────────── */
 
@@ -132,16 +133,11 @@ export function StyleView() {
   const currentStyle = settings?.stylePreferences[activeTab] ?? "casual";
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto">
-      {/* Header */}
-      <header className="border-b border-border px-8 pt-8 pb-6">
-        <h1 className="text-2xl font-semibold text-ink">Style</h1>
-        <p className="mt-1 text-sm text-muted">
-          Choose how your cleaned-up text sounds per type of app.
-        </p>
-      </header>
-
-      <div className="px-8 py-6">
+    <PageLayout
+      title="Style"
+      subtitle="Choose how your cleaned-up text sounds per type of app."
+    >
+      <div>
         {/* Tabs */}
         <div className="mb-2 flex gap-6 border-b border-border">
           {TABS.map((t) => (
@@ -203,6 +199,6 @@ export function StyleView() {
           })}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

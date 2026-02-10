@@ -106,12 +106,13 @@ export default function Page() {
           onLogout={logout}
         />
 
-        <div className="flex-1 overflow-auto rounded-tl-xl bg-white">
+        <div className="flex flex-1 overflow-hidden rounded-tl-xl bg-white">
           {view === "home" && (
             <HomeView
               stats={stats}
               localTranscripts={localTranscripts}
               userName={auth?.name}
+              onNavigateToStats={() => setView("stats")}
             />
           )}
           {view === "stats" && <StatsView stats={stats} />}
