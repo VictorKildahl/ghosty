@@ -16,6 +16,7 @@ export default defineSchema({
   sessions: defineTable({
     userId: v.id("users"),
     wordCount: v.number(),
+    durationMs: v.number(),
     rawLength: v.number(),
     cleanedLength: v.number(),
     timestamp: v.number(),
@@ -29,6 +30,7 @@ export default defineSchema({
     date: v.string(), // "YYYY-MM-DD"
     wordCount: v.number(),
     sessionCount: v.number(),
+    totalDurationMs: v.optional(v.number()),
   })
     .index("by_userId", ["userId"])
     .index("by_userId_date", ["userId", "date"]),

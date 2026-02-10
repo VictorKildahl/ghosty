@@ -5,10 +5,11 @@ export const record = mutation({
   args: {
     userId: v.id("users"),
     wordCount: v.number(),
+    durationMs: v.number(),
     rawLength: v.number(),
     cleanedLength: v.number(),
   },
-  handler: async (ctx, { userId, wordCount, rawLength, cleanedLength }) => {
+  handler: async (ctx, { userId, wordCount, durationMs, rawLength, cleanedLength }) => {
     const now = Date.now();
     const date = new Date(now).toISOString().slice(0, 10); // "YYYY-MM-DD"
 
@@ -16,6 +17,7 @@ export const record = mutation({
     await ctx.db.insert("sessions", {
       userId,
       wordCount,
+      durationMs,
       rawLength,
       cleanedLength,
       timestamp: now,
@@ -34,6 +36,7 @@ export const record = mutation({
       await ctx.db.patch(existing._id, {
         wordCount: existing.wordCount + wordCount,
         sessionCount: existing.sessionCount + 1,
+        totalDurationMs: (existing.totalDurationMs ?? 0) + durationMs,
       });
     } else {
       await ctx.db.insert("dailyStats", {
@@ -41,6 +44,7 @@ export const record = mutation({
         date,
         wordCount,
         sessionCount: 1,
+        totalDurationMs: durationMs,
       });
     }
   },

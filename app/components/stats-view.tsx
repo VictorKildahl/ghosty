@@ -9,6 +9,8 @@ export function StatsView({
     totalWords: number;
     totalSessions: number;
     totalDaysActive: number;
+    totalDurationMs: number;
+    avgWordsPerMinute: number;
     currentStreak: number;
     longestStreak: number;
     recentDays: { date: string; wordCount: number; sessionCount: number }[];
@@ -23,6 +25,15 @@ export function StatsView({
   }
 
   const maxWords = Math.max(...stats.recentDays.map((d) => d.wordCount), 1);
+
+  // Format total duration
+  const totalMinutes = Math.floor(stats.totalDurationMs / 60_000);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const remainingMinutes = totalMinutes % 60;
+  const formattedDuration =
+    totalHours > 0
+      ? `${totalHours}h ${remainingMinutes}m`
+      : `${totalMinutes}m`;
 
   // Build full 30-day range for the chart
   const dayMap = new Map(stats.recentDays.map((d) => [d.date, d]));
@@ -48,13 +59,20 @@ export function StatsView({
 
       <div className="flex flex-col gap-6 px-8 py-6">
         {/* Stat cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col items-center rounded-xl border border-border bg-white p-5">
             <span className="text-2xl">🚀</span>
             <span className="mt-2 text-2xl font-bold text-ink">
               {stats.totalWords.toLocaleString()}
             </span>
             <span className="text-xs text-muted">Words spoken</span>
+          </div>
+          <div className="flex flex-col items-center rounded-xl border border-border bg-white p-5">
+            <span className="text-2xl">🎙️</span>
+            <span className="mt-2 text-2xl font-bold text-ink">
+              {stats.avgWordsPerMinute}
+            </span>
+            <span className="text-xs text-muted">Words / min</span>
           </div>
           <div className="flex flex-col items-center rounded-xl border border-border bg-white p-5">
             <span className="text-2xl">🔥</span>
@@ -73,7 +91,7 @@ export function StatsView({
         </div>
 
         {/* Secondary stat cards */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col items-center rounded-xl border border-border bg-white p-5">
             <span className="text-2xl">🏆</span>
             <span className="mt-2 text-2xl font-bold text-ink">
@@ -87,6 +105,13 @@ export function StatsView({
               {stats.totalDaysActive}
             </span>
             <span className="text-xs text-muted">Days active</span>
+          </div>
+          <div className="flex flex-col items-center rounded-xl border border-border bg-white p-5">
+            <span className="text-2xl">⏱️</span>
+            <span className="mt-2 text-2xl font-bold text-ink">
+              {formattedDuration}
+            </span>
+            <span className="text-xs text-muted">Time spoken</span>
           </div>
         </div>
 

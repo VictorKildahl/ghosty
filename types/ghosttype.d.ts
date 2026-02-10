@@ -52,6 +52,7 @@ export type GhosttypeSettingsUpdate = {
 
 export type SessionEvent = {
   wordCount: number;
+  durationMs: number;
   rawLength: number;
   cleanedLength: number;
   timestamp: number;

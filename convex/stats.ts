@@ -16,9 +16,11 @@ export const get = query({
     // Compute totals
     let totalWords = 0;
     let totalSessions = 0;
+    let totalDurationMs = 0;
     for (const day of allDays) {
       totalWords += day.wordCount;
       totalSessions += day.sessionCount;
+      totalDurationMs += day.totalDurationMs ?? 0;
     }
 
     // Compute streaks
@@ -83,10 +85,17 @@ export const get = query({
     // Total days active
     const totalDaysActive = allDays.length;
 
+    // Average words per minute
+    const totalMinutes = totalDurationMs / 60_000;
+    const avgWordsPerMinute =
+      totalMinutes > 0 ? Math.round(totalWords / totalMinutes) : 0;
+
     return {
       totalWords,
       totalSessions,
       totalDaysActive,
+      totalDurationMs,
+      avgWordsPerMinute,
       currentStreak,
       longestStreak,
       recentDays: recentDays.map((d) => ({

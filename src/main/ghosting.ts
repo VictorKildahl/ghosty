@@ -21,6 +21,7 @@ export type GhostingState = {
 
 export class GhostingController {
   private recordingSession: RecordingSession | null = null;
+  private recordingStartTime: number | null = null;
   private state: GhostingState = {
     phase: "idle",
     lastGhostedText: "",
@@ -33,6 +34,7 @@ export class GhostingController {
     private readonly getSettings: () => GhosttypeSettings,
     private readonly onSessionComplete?: (session: {
       wordCount: number;
+      durationMs: number;
       rawLength: number;
       cleanedLength: number;
     }) => void,
@@ -58,6 +60,7 @@ export class GhostingController {
 
     const session = startRecording(this.getSettings().selectedMicrophone);
     this.recordingSession = session;
+    this.recordingStartTime = Date.now();
     this.setState({ phase: "recording", error: null });
 
     session.process.once("error", (error) => {
@@ -70,7 +73,11 @@ export class GhostingController {
     if (this.state.phase !== "recording" || !this.recordingSession) return;
 
     const session = this.recordingSession;
+    const durationMs = this.recordingStartTime
+      ? Date.now() - this.recordingStartTime
+      : 0;
     this.recordingSession = null;
+    this.recordingStartTime = null;
 
     try {
       await stopRecording(session);
@@ -103,6 +110,7 @@ export class GhostingController {
       const wordCount = finalText.split(/\s+/).filter(Boolean).length;
       this.onSessionComplete?.({
         wordCount,
+        durationMs,
         rawLength: rawText.length,
         cleanedLength: finalText.length,
       });
@@ -119,6 +127,7 @@ export class GhostingController {
 
     const session = this.recordingSession;
     this.recordingSession = null;
+    this.recordingStartTime = null;
 
     try {
       await stopRecording(session);

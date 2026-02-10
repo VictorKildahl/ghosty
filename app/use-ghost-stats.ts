@@ -19,6 +19,7 @@ export function useGhostStats(userId: Id<"users"> | null) {
       await recordSession({
         userId,
         wordCount: session.wordCount,
+        durationMs: session.durationMs,
         rawLength: session.rawLength,
         cleanedLength: session.cleanedLength,
       });
