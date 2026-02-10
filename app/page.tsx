@@ -1,5 +1,6 @@
 "use client";
 
+import { ConsentView } from "@/app/components/consent-view";
 import { HomeView } from "@/app/components/home-view";
 import { SettingsView } from "@/app/components/settings-view";
 import { Sidebar, type View } from "@/app/components/sidebar";
@@ -8,13 +9,14 @@ import { LoginView } from "@/app/login-view";
 import { SignUpView } from "@/app/signup-view";
 import { useAuth } from "@/app/use-auth";
 import { useGhostStats } from "@/app/use-ghost-stats";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type AuthView = "login" | "signup";
 
 export default function Page() {
   const [view, setView] = useState<View>("home");
   const [authView, setAuthView] = useState<AuthView>("login");
+  const [showConsent, setShowConsent] = useState(false);
 
   const {
     auth,
@@ -25,7 +27,27 @@ export default function Page() {
     logout,
   } = useAuth();
 
-  const { stats } = useGhostStats(auth?.userId ?? null);
+  const { stats, localTranscripts } = useGhostStats(auth?.userId ?? null);
+
+  // Wrap signUp so we show consent prompt after a successful registration
+  const handleSignUp = useCallback(
+    async (email: string, password: string, name?: string) => {
+      const result = await signUp(email, password, name);
+      setShowConsent(true);
+      return result;
+    },
+    [signUp],
+  );
+
+  // Handle the consent choice
+  const handleConsent = useCallback(async (shareTranscripts: boolean) => {
+    try {
+      await window.ghosttype?.updateSettings({ shareTranscripts });
+    } catch {
+      // Settings will remain at default (false) if IPC fails
+    }
+    setShowConsent(false);
+  }, []);
 
   // --------------- Loading ---------------
   if (authLoading) {
@@ -48,10 +70,15 @@ export default function Page() {
       />
     ) : (
       <SignUpView
-        onSignUp={signUp}
+        onSignUp={handleSignUp}
         onSwitchToLogin={() => setAuthView("login")}
       />
     );
+  }
+
+  // --------------- Consent prompt (after signup) ---------------
+  if (showConsent) {
+    return <ConsentView onChoice={handleConsent} />;
   }
 
   // --------------- Authenticated app ---------------
@@ -64,7 +91,9 @@ export default function Page() {
         onLogout={logout}
       />
 
-      {view === "home" && <HomeView stats={stats} />}
+      {view === "home" && (
+        <HomeView stats={stats} localTranscripts={localTranscripts} />
+      )}
       {view === "stats" && <StatsView stats={stats} />}
       {view === "settings" && <SettingsView />}
     </div>

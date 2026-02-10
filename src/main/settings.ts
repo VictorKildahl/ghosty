@@ -26,6 +26,7 @@ export type GhosttypeSettings = {
   selectedMicrophone: string | null;
   aiCleanup: boolean;
   aiModel: string;
+  shareTranscripts: boolean;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -34,6 +35,7 @@ export type GhosttypeSettingsUpdate = {
   selectedMicrophone?: string | null;
   aiCleanup?: boolean;
   aiModel?: string;
+  shareTranscripts?: boolean;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -49,6 +51,7 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
   selectedMicrophone: null,
   aiCleanup: true,
   aiModel: "google/gemini-2.0-flash",
+  shareTranscripts: false,
 };
 
 const MODIFIER_CODES = new Set([
@@ -297,7 +300,19 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? record.aiModel
       : DEFAULT_SETTINGS.aiModel;
 
-  return { autoPaste, shortcut, selectedMicrophone, aiCleanup, aiModel };
+  const shareTranscripts =
+    typeof record.shareTranscripts === "boolean"
+      ? record.shareTranscripts
+      : DEFAULT_SETTINGS.shareTranscripts;
+
+  return {
+    autoPaste,
+    shortcut,
+    selectedMicrophone,
+    aiCleanup,
+    aiModel,
+    shareTranscripts,
+  };
 }
 
 function settingsPath() {
@@ -335,6 +350,7 @@ export async function updateSettings(
         : current.selectedMicrophone,
     aiCleanup: patch.aiCleanup ?? current.aiCleanup,
     aiModel: patch.aiModel ?? current.aiModel,
+    shareTranscripts: patch.shareTranscripts ?? current.shareTranscripts,
   };
 
   await saveSettings(next);

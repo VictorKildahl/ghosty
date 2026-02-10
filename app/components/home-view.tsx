@@ -6,16 +6,22 @@ import {
   groupByDate,
   type GhostLogEntry,
 } from "@/lib/ghost-helpers";
-import type { GhostingState, GhosttypeSettings } from "@/types/ghosttype";
+import type {
+  GhostingState,
+  GhosttypeSettings,
+  LocalTranscript,
+} from "@/types/ghosttype";
 import { useEffect, useState } from "react";
 
 export function HomeView({
   stats,
+  localTranscripts,
 }: {
   stats: {
     totalWords: number;
     currentStreak: number;
   } | null;
+  localTranscripts: LocalTranscript[];
 }) {
   const [state, setState] = useState<GhostingState>({
     phase: "idle",
@@ -25,6 +31,20 @@ export function HomeView({
   });
   const [settings, setSettings] = useState<GhosttypeSettings | null>(null);
   const [ghostLog, setGhostLog] = useState<GhostLogEntry[]>([]);
+
+  // Seed ghost log from persisted local transcripts
+  useEffect(() => {
+    if (localTranscripts.length > 0) {
+      setGhostLog((prev) => {
+        // Only seed if the log is empty (initial load)
+        if (prev.length > 0) return prev;
+        return localTranscripts.map((t) => ({
+          timestamp: new Date(t.timestamp),
+          text: t.cleanedText,
+        }));
+      });
+    }
+  }, [localTranscripts]);
 
   useEffect(() => {
     if (!window.ghosttype) return;

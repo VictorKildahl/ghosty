@@ -22,6 +22,7 @@ import {
   type GhosttypeSettings,
   type GhosttypeSettingsUpdate,
 } from "./settings";
+import { loadLocalTranscripts, saveLocalTranscript } from "./transcriptStore";
 
 function loadEnvFile() {
   const root = app.isPackaged ? process.resourcesPath : app.getAppPath();
@@ -320,6 +321,9 @@ function setupIpc(controller: GhostingController) {
   });
   ipcMain.handle("ghosting:get-audio-devices", () => listAudioDevices());
   ipcMain.handle("ghosting:get-device-id", () => getDeviceId());
+  ipcMain.handle("ghosting:get-local-transcripts", () =>
+    loadLocalTranscripts(),
+  );
 
   ipcMain.on("overlay:set-ignore-mouse", (_event, ignore: boolean) => {
     if (!overlayWindow) return;
@@ -417,6 +421,15 @@ app.whenReady().then(async () => {
     },
     () => settings ?? getDefaultSettings(),
     (session) => {
+      // Always save cleaned transcript locally
+      saveLocalTranscript({
+        timestamp: Date.now(),
+        cleanedText: session.cleanedText,
+        wordCount: session.wordCount,
+      }).catch((err) =>
+        console.error("[ghosttype] failed to save local transcript:", err),
+      );
+
       mainWindow?.webContents.send("ghosting:session-complete", {
         ...session,
         timestamp: Date.now(),

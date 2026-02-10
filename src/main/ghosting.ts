@@ -37,6 +37,8 @@ export class GhostingController {
       durationMs: number;
       rawLength: number;
       cleanedLength: number;
+      rawText: string;
+      cleanedText: string;
     }) => void,
   ) {}
 
@@ -113,6 +115,8 @@ export class GhostingController {
         durationMs,
         rawLength: rawText.length,
         cleanedLength: finalText.length,
+        rawText,
+        cleanedText: finalText,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";

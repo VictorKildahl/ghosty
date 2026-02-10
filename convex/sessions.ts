@@ -8,8 +8,21 @@ export const record = mutation({
     durationMs: v.number(),
     rawLength: v.number(),
     cleanedLength: v.number(),
+    rawText: v.optional(v.string()),
+    cleanedText: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, wordCount, durationMs, rawLength, cleanedLength }) => {
+  handler: async (
+    ctx,
+    {
+      userId,
+      wordCount,
+      durationMs,
+      rawLength,
+      cleanedLength,
+      rawText,
+      cleanedText,
+    },
+  ) => {
     const now = Date.now();
     const date = new Date(now).toISOString().slice(0, 10); // "YYYY-MM-DD"
 
@@ -20,6 +33,8 @@ export const record = mutation({
       durationMs,
       rawLength,
       cleanedLength,
+      ...(rawText !== undefined ? { rawText } : {}),
+      ...(cleanedText !== undefined ? { cleanedText } : {}),
       timestamp: now,
       date,
     });

@@ -40,6 +40,7 @@ export type GhosttypeSettings = {
   selectedMicrophone: string | null;
   aiCleanup: boolean;
   aiModel: string;
+  shareTranscripts: boolean;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -48,6 +49,7 @@ export type GhosttypeSettingsUpdate = {
   selectedMicrophone?: string | null;
   aiCleanup?: boolean;
   aiModel?: string;
+  shareTranscripts?: boolean;
 };
 
 export type SessionEvent = {
@@ -55,7 +57,15 @@ export type SessionEvent = {
   durationMs: number;
   rawLength: number;
   cleanedLength: number;
+  rawText: string;
+  cleanedText: string;
   timestamp: number;
+};
+
+export type LocalTranscript = {
+  timestamp: number;
+  cleanedText: string;
+  wordCount: number;
 };
 
 export type GhostTypeAPI = {
@@ -70,6 +80,7 @@ export type GhostTypeAPI = {
   startShortcutCapture: () => Promise<GhosttypeSettings>;
   stopShortcutCapture: () => Promise<void>;
   getDeviceId: () => Promise<string>;
+  getLocalTranscripts: () => Promise<LocalTranscript[]>;
   onGhostingState: (callback: (state: GhostingState) => void) => () => void;
   onSettings: (callback: (settings: GhosttypeSettings) => void) => () => void;
   onShortcutPreview: (callback: (preview: string) => void) => () => void;

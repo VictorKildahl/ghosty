@@ -4,6 +4,7 @@ import type {
   GhostingState,
   GhosttypeSettings,
   GhosttypeSettingsUpdate,
+  LocalTranscript,
   SessionEvent,
 } from "../../types/ghosttype";
 
@@ -29,6 +30,10 @@ const api = {
     ipcRenderer.invoke("ghosting:stop-shortcut-capture"),
   getDeviceId: () =>
     ipcRenderer.invoke("ghosting:get-device-id") as Promise<string>,
+  getLocalTranscripts: () =>
+    ipcRenderer.invoke("ghosting:get-local-transcripts") as Promise<
+      LocalTranscript[]
+    >,
   onGhostingState: (callback: (state: GhostingState) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,

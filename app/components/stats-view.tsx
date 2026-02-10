@@ -31,9 +31,7 @@ export function StatsView({
   const totalHours = Math.floor(totalMinutes / 60);
   const remainingMinutes = totalMinutes % 60;
   const formattedDuration =
-    totalHours > 0
-      ? `${totalHours}h ${remainingMinutes}m`
-      : `${totalMinutes}m`;
+    totalHours > 0 ? `${totalHours}h ${remainingMinutes}m` : `${totalMinutes}m`;
 
   // Build full 30-day range for the chart
   const dayMap = new Map(stats.recentDays.map((d) => [d.date, d]));

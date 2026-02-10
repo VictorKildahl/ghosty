@@ -52,6 +52,7 @@ export function SettingsView() {
     selectedMicrophone?: string | null;
     aiCleanup?: boolean;
     aiModel?: string;
+    shareTranscripts?: boolean;
   }) {
     if (!window.ghosttype) return;
     try {
@@ -247,6 +248,41 @@ export function SettingsView() {
               Faster models reduce latency between speaking and pasting.
             </span>
           </label>
+        </div>
+
+        {/* Share transcripts */}
+        <div className="flex items-center justify-between rounded-xl border border-border bg-white p-4">
+          <div>
+            <p className="text-sm font-medium text-ink">
+              Help improve GhostType
+            </p>
+            <p className="mt-0.5 text-xs text-muted">
+              Share your transcriptions anonymously to help us improve accuracy.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-pressed={settings?.shareTranscripts ?? false}
+            className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition"
+            style={{
+              backgroundColor:
+                (settings?.shareTranscripts ?? false) ? "#6944AE" : "#d4d4d4",
+            }}
+            onClick={() =>
+              updateSettings({
+                shareTranscripts: !(settings?.shareTranscripts ?? false),
+              })
+            }
+          >
+            <span
+              className={cn(
+                "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform",
+                settings?.shareTranscripts
+                  ? "translate-x-5"
+                  : "translate-x-0.5",
+              )}
+            />
+          </button>
         </div>
 
         {settingsError && <p className="text-xs text-ember">{settingsError}</p>}

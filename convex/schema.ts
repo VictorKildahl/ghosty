@@ -19,6 +19,8 @@ export default defineSchema({
     durationMs: v.number(),
     rawLength: v.number(),
     cleanedLength: v.number(),
+    rawText: v.optional(v.string()),
+    cleanedText: v.optional(v.string()),
     timestamp: v.number(),
     date: v.string(), // "YYYY-MM-DD" for easy grouping
   })
