@@ -42,3 +42,16 @@ body {
   font-family: "JetBrains Mono", "SF Mono", "SFMono-Regular", ui-monospace, monospace;
   font-size: 0.85rem;
 }
+
+/* macOS custom title bar: make header draggable */
+.title-bar {
+  -webkit-app-region: drag;
+}
+
+/* Buttons and interactive elements inside the title bar must not be draggable */
+.title-bar button,
+.title-bar a,
+.title-bar input,
+.no-drag {
+  -webkit-app-region: no-drag;
+}

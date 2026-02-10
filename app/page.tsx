@@ -1,5 +1,6 @@
 "use client";
 
+import { Header } from "@/app/components/header";
 import { HomeView } from "@/app/components/home-view";
 import { OnboardingView } from "@/app/components/onboarding-view";
 import { SettingsView } from "@/app/components/settings-view";
@@ -95,20 +96,25 @@ export default function Page() {
 
   // --------------- Authenticated app ---------------
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white">
-      <Sidebar
-        currentView={view}
-        onNavigate={setView}
-        userEmail={auth?.email}
-        onLogout={logout}
-      />
+    <div className="flex h-screen w-screen overflow-hidden bg-sidebar">
+      <Sidebar currentView={view} onNavigate={setView} />
 
-      {view === "home" && (
-        <HomeView stats={stats} localTranscripts={localTranscripts} />
-      )}
-      {view === "stats" && <StatsView stats={stats} />}
-      {view === "style" && <StyleView />}
-      {view === "settings" && <SettingsView />}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header
+          userName={auth?.name}
+          userEmail={auth?.email}
+          onLogout={logout}
+        />
+
+        <div className="flex-1 overflow-auto rounded-tl-xl bg-white">
+          {view === "home" && (
+            <HomeView stats={stats} localTranscripts={localTranscripts} />
+          )}
+          {view === "stats" && <StatsView stats={stats} />}
+          {view === "style" && <StyleView />}
+          {view === "settings" && <SettingsView />}
+        </div>
+      </div>
     </div>
   );
 }

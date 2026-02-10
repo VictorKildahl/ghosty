@@ -84,6 +84,7 @@ export function useAuth() {
       const authState: AuthState = {
         userId: result.userId,
         email: result.email,
+        name: name,
       };
       setAuth(authState);
       saveAuthToStorage(authState);

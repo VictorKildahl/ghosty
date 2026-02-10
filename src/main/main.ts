@@ -84,6 +84,8 @@ function createMainWindow() {
     show: false,
     backgroundColor: "#ffffff",
     title: "GhostType",
+    titleBarStyle: "hidden",
+    trafficLightPosition: { x: 16, y: 18 },
     icon: resolveAppResourcePath("public/assets", "ghosty-dock.png"),
     webPreferences: {
       contextIsolation: true,
@@ -101,6 +103,17 @@ function createMainWindow() {
 
   win.once("ready-to-show", () => {
     win.show();
+    // Ensure traffic lights are visible after first paint
+    win.setWindowButtonVisibility(true);
+  });
+
+  // Keep macOS traffic lights visible when the window loses focus
+  win.on("blur", () => {
+    setTimeout(() => {
+      if (!win.isDestroyed()) {
+        win.setWindowButtonVisibility(true);
+      }
+    }, 0);
   });
 
   return win;
