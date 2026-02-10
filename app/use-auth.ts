@@ -40,6 +40,7 @@ export function useAuth() {
   const signUpMutation = useMutation(api.auth.signUp);
   const loginMutation = useMutation(api.auth.login);
   const seedDictionaryMutation = useMutation(api.dictionary.seed);
+  const seedSnippetsMutation = useMutation(api.snippets.seed);
 
   // Validate stored session on mount
   const validated = useQuery(
@@ -117,9 +118,17 @@ export function useAuth() {
         // Best-effort — don't block signup if seeding fails
       });
 
+      // Seed snippets with useful starter examples
+      seedSnippetsMutation({
+        userId: result.userId,
+        email: result.email,
+      }).catch(() => {
+        // Best-effort — don't block signup if seeding fails
+      });
+
       return authState;
     },
-    [signUpMutation, seedDictionaryMutation, getDeviceId],
+    [signUpMutation, seedDictionaryMutation, seedSnippetsMutation, getDeviceId],
   );
 
   const login = useCallback(

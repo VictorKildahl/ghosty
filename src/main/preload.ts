@@ -7,6 +7,7 @@ import type {
   GhosttypeSettingsUpdate,
   LocalTranscript,
   SessionEvent,
+  SnippetEntry,
 } from "../../types/ghosttype";
 
 const api = {
@@ -67,6 +68,10 @@ const api = {
     ipcRenderer.invoke("dictionary:delete", id) as Promise<void>,
   syncDictionary: (entries: DictionaryEntry[]) =>
     ipcRenderer.invoke("dictionary:sync", entries) as Promise<void>,
+  getSnippets: () =>
+    ipcRenderer.invoke("snippets:get-all") as Promise<SnippetEntry[]>,
+  syncSnippets: (entries: SnippetEntry[]) =>
+    ipcRenderer.invoke("snippets:sync", entries) as Promise<void>,
   onGhostingState: (callback: (state: GhostingState) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,

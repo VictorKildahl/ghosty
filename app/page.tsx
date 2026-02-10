@@ -6,6 +6,7 @@ import { HomeView } from "@/app/components/home-view";
 import { OnboardingView } from "@/app/components/onboarding-view";
 import { SettingsView } from "@/app/components/settings-view";
 import { Sidebar, type View } from "@/app/components/sidebar";
+import { SnippetsView } from "@/app/components/snippets-view";
 import { StatsView } from "@/app/components/stats-view";
 import { StyleView } from "@/app/components/style-view";
 import { LoginView } from "@/app/login-view";
@@ -129,6 +130,7 @@ export default function Page() {
           {view === "stats" && <StatsView stats={stats} />}
           {view === "style" && <StyleView />}
           {view === "dictionary" && <DictionaryView userId={auth!.userId} />}
+          {view === "snippets" && <SnippetsView userId={auth!.userId} />}
           {view === "settings" && <SettingsView />}
         </div>
       </div>

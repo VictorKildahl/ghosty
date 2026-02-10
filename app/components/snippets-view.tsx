@@ -1,38 +1,52 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { Book, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import {
+  ArrowRight,
+  Pencil,
+  Plus,
+  Scissors,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { AddWordModal } from "./add-word-modal";
+import { AddSnippetModal } from "./add-snippet-modal";
 import { DataTable, RowActionButton } from "./data-table";
 import { PageLayout } from "./page-layout";
 
 /* ── Example pills shown in the intro banner ───────────────────────── */
-const EXAMPLE_PILLS = [
-  "Q3 Roadmap",
-  "Ghostwriter → GhostWriter",
-  "Figma Jam",
-  "Company name",
+const EXAMPLE_SNIPPETS = [
+  {
+    snippet: "my email address",
+    expansion: "victor.petersen2@gmail.com",
+  },
+  {
+    snippet: "intro email",
+    expansion: "Hey, would love to find some time to chat later...",
+  },
+  {
+    snippet: "my address",
+    expansion: "123 Main Street, Apt 4B, San Francisco, CA 94102",
+  },
 ];
 
 /* ── Types for the edit modal state ────────────────────────────────── */
-
 type EditState = {
-  entryId: Id<"dictionaryEntries">;
-  word: string;
-  isCorrection: boolean;
-  misspelling?: string;
+  entryId: Id<"snippetEntries">;
+  snippet: string;
+  expansion: string;
 };
 
-/* ── Main Dictionary View ──────────────────────────────────────────── */
+/* ── Main Snippets View ────────────────────────────────────────────── */
 
-export function DictionaryView({ userId }: { userId: Id<"users"> }) {
-  const entries = useQuery(api.dictionary.list, { userId });
-  const addEntry = useMutation(api.dictionary.add);
-  const updateEntry = useMutation(api.dictionary.update);
-  const removeEntry = useMutation(api.dictionary.remove);
+export function SnippetsView({ userId }: { userId: Id<"users"> }) {
+  const entries = useQuery(api.snippets.list, { userId });
+  const addEntry = useMutation(api.snippets.add);
+  const updateEntry = useMutation(api.snippets.update);
+  const removeEntry = useMutation(api.snippets.remove);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editState, setEditState] = useState<EditState | null>(null);
@@ -40,16 +54,15 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
   const [showSearch, setShowSearch] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 
-  // Sync dictionary to local file so the AI main process can access it
+  // Sync snippets to local file so the main process can access them
   useEffect(() => {
     if (!entries || !window.ghosttype) return;
     window.ghosttype
-      .syncDictionary(
+      .syncSnippets(
         entries.map((e) => ({
           id: e._id,
-          word: e.word,
-          isCorrection: e.isCorrection,
-          misspelling: e.misspelling,
+          snippet: e.snippet,
+          expansion: e.expansion,
           createdAt: e.createdAt,
         })),
       )
@@ -57,11 +70,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
   }, [entries]);
 
   const handleAdd = useCallback(
-    async (entry: {
-      word: string;
-      isCorrection: boolean;
-      misspelling?: string;
-    }) => {
+    async (entry: { snippet: string; expansion: string }) => {
       await addEntry({ userId, ...entry });
       setShowAddModal(false);
     },
@@ -69,11 +78,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
   );
 
   const handleEdit = useCallback(
-    async (entry: {
-      word: string;
-      isCorrection: boolean;
-      misspelling?: string;
-    }) => {
+    async (entry: { snippet: string; expansion: string }) => {
       if (!editState) return;
       await updateEntry({ entryId: editState.entryId, ...entry });
       setEditState(null);
@@ -82,7 +87,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
   );
 
   const handleDelete = useCallback(
-    async (entryId: Id<"dictionaryEntries">) => {
+    async (entryId: Id<"snippetEntries">) => {
       await removeEntry({ entryId });
     },
     [removeEntry],
@@ -94,8 +99,8 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
     const q = searchQuery.toLowerCase();
     return entries.filter(
       (e) =>
-        e.word.toLowerCase().includes(q) ||
-        (e.misspelling && e.misspelling.toLowerCase().includes(q)),
+        e.snippet.toLowerCase().includes(q) ||
+        e.expansion.toLowerCase().includes(q),
     );
   }, [entries, searchQuery]);
 
@@ -108,7 +113,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
 
   return (
     <PageLayout
-      title="Dictionary"
+      title="Snippets"
       headerRight={
         <button
           onClick={() => setShowAddModal(true)}
@@ -128,26 +133,29 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
             <X className="h-4 w-4" />
           </button>
 
-          <h2 className="text-xl font-semibold text-ink">
-            GhostWriter speaks the way you speak.
+          <h2 className="font-serif text-2xl italic text-ink">
+            The stuff you shouldn&apos;t have to re-type.
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink/80">
-            GhostWriter learns your unique words and names - automatically or
-            manually.{" "}
+            Save shortcuts to speak the things you type all the time - emails,
+            links, addresses, bios - anything.{" "}
             <span className="font-semibold">
-              Add personal terms, company jargon, client names, or
-              industry-specific lingo.
+              Just speak and GhostWriter expands them instantly
             </span>
+            , without retyping or hunting through old messages.
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {EXAMPLE_PILLS.map((pill) => (
-              <span
-                key={pill}
-                className="rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-ink"
-              >
-                {pill}
-              </span>
+          <div className="mt-4 flex flex-col gap-2">
+            {EXAMPLE_SNIPPETS.map((ex) => (
+              <div key={ex.snippet} className="flex items-center gap-3">
+                <span className="rounded-full border border-border bg-white px-3 py-1 text-xs font-medium text-ink">
+                  {ex.snippet}
+                </span>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted" />
+                <span className="rounded-full border border-border bg-white px-3 py-1 text-xs text-ink/70">
+                  {ex.expansion}
+                </span>
+              </div>
             ))}
           </div>
 
@@ -155,7 +163,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
             onClick={() => setShowAddModal(true)}
             className="mt-4 rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink/90"
           >
-            Add new word
+            Add new snippet
           </button>
         </div>
       )}
@@ -167,7 +175,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text"
-              placeholder="Search dictionary…"
+              placeholder="Search snippets…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-8 text-sm text-ink placeholder:text-muted/60 focus:border-accent focus:outline-none"
@@ -186,7 +194,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
         ) : (
           <>
             <span className="text-sm font-medium text-ink">
-              {totalCount} {totalCount === 1 ? "word" : "words"}
+              {totalCount} {totalCount === 1 ? "snippet" : "snippets"}
             </span>
             <div className="flex-1" />
             <button
@@ -204,25 +212,25 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
       {tableItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-parchment/60">
-            <Book className="h-6 w-6 text-muted" />
+            <Scissors className="h-6 w-6 text-muted" />
           </div>
           {totalCount === 0 ? (
             <>
-              <p className="text-sm font-medium text-ink">No words yet</p>
+              <p className="text-sm font-medium text-ink">No snippets yet</p>
               <p className="mt-1 text-sm text-muted">
-                Add words, names, and terms for better transcription accuracy.
+                Add shortcuts for text you type all the time.
               </p>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="mt-4 flex items-center gap-1.5 rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ink/90"
               >
                 <Plus className="h-4 w-4" />
-                Add your first word
+                Add your first snippet
               </button>
             </>
           ) : (
             <p className="text-sm text-muted">
-              No words match &quot;{searchQuery}&quot;
+              No snippets match &quot;{searchQuery}&quot;
             </p>
           )}
         </div>
@@ -231,33 +239,26 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
           items={tableItems}
           renderContent={(item) => (
             <span className="text-sm text-ink">
-              {item.isCorrection && item.misspelling ? (
-                <>
-                  {item.misspelling} <span className="text-muted">→</span>{" "}
-                  {item.word}
-                </>
-              ) : (
-                item.word
-              )}
+              {item.snippet} <span className="text-muted">→</span>{" "}
+              <span className="text-ink/70">{item.expansion}</span>
             </span>
           )}
           renderActions={(item) => (
             <>
               <RowActionButton
                 icon={Pencil}
-                label="Edit entry"
+                label="Edit snippet"
                 onClick={() =>
                   setEditState({
                     entryId: item._id,
-                    word: item.word,
-                    isCorrection: item.isCorrection,
-                    misspelling: item.misspelling,
+                    snippet: item.snippet,
+                    expansion: item.expansion,
                   })
                 }
               />
               <RowActionButton
                 icon={Trash2}
-                label="Delete entry"
+                label="Delete snippet"
                 variant="danger"
                 onClick={() => handleDelete(item._id)}
               />
@@ -267,20 +268,19 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
       )}
 
       {/* Add modal */}
-      <AddWordModal
+      <AddSnippetModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAdd}
       />
 
       {/* Edit modal */}
-      <AddWordModal
+      <AddSnippetModal
         open={editState !== null}
         onClose={() => setEditState(null)}
         onAdd={handleEdit}
-        initialWord={editState?.word}
-        initialMisspelling={editState?.misspelling}
-        initialIsCorrection={editState?.isCorrection}
+        initialSnippet={editState?.snippet}
+        initialExpansion={editState?.expansion}
       />
     </PageLayout>
   );

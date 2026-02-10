@@ -10,6 +10,7 @@ import {
 import { loadDictionary } from "./dictionaryStore";
 import { applyGhostedText } from "./paste";
 import type { GhosttypeSettings } from "./settings";
+import { loadSnippets } from "./snippetStore";
 import { transcribeWithWhisper } from "./whisper";
 
 export type GhostingPhase =
@@ -136,11 +137,13 @@ export class GhostingController {
 
       if (aiCleanup) {
         const dictionary = await loadDictionary();
+        const snippets = await loadSnippets();
         finalText = await cleanupGhostedText(
           rawText,
           aiModel,
           writingStyle,
           dictionary,
+          snippets,
         );
       } else {
         console.log("[ghosttype] ai cleanup skipped");

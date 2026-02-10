@@ -53,4 +53,11 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_userId_date", ["userId", "date"]),
+
+  snippetEntries: defineTable({
+    userId: v.id("users"),
+    snippet: v.string(),
+    expansion: v.string(),
+    createdAt: v.number(),
+  }).index("by_userId", ["userId"]),
 });

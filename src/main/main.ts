@@ -34,6 +34,7 @@ import {
   type GhosttypeSettings,
   type GhosttypeSettingsUpdate,
 } from "./settings";
+import { loadSnippets, syncSnippets, type SnippetEntry } from "./snippetStore";
 import {
   deleteLocalTranscript,
   loadLocalTranscripts,
@@ -383,6 +384,12 @@ function setupIpc(controller: GhostingController) {
   );
   ipcMain.handle("dictionary:sync", (_event, entries: DictionaryEntry[]) =>
     syncDictionary(entries),
+  );
+
+  // Snippets
+  ipcMain.handle("snippets:get-all", () => loadSnippets());
+  ipcMain.handle("snippets:sync", (_event, entries: SnippetEntry[]) =>
+    syncSnippets(entries),
   );
 
   ipcMain.on("overlay:set-ignore-mouse", (_event, ignore: boolean) => {

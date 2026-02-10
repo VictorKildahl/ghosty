@@ -1,6 +1,7 @@
 import { createGateway } from "@ai-sdk/gateway";
 import { generateText } from "ai";
 import type { DictionaryEntry } from "./dictionaryStore";
+import type { SnippetEntry } from "./snippetStore";
 
 const CLEANUP_BASE_RULES = `You are a transcription cleanup tool. The user message contains raw speech-to-text output. Your ONLY job is to return the cleaned version of that text. Never reply conversationally. Never ask questions. Never refuse. Always return cleaned text.
 
@@ -40,6 +41,7 @@ Writing style: EXCITED
 function buildSystemPrompt(
   writingStyle?: string | null,
   dictionary?: DictionaryEntry[],
+  snippets?: SnippetEntry[],
 ): string {
   const style =
     STYLE_INSTRUCTIONS[writingStyle ?? "casual"] ?? STYLE_INSTRUCTIONS.casual;
@@ -72,7 +74,13 @@ function buildSystemPrompt(
     dictionarySection = `\n\nUser dictionary:\n${parts.join("\n\n")}`;
   }
 
-  return `${CLEANUP_BASE_RULES}\n${style}${dictionarySection}\n\nOutput the cleaned text only. Nothing else.`;
+  let snippetSection = "";
+  if (snippets && snippets.length > 0) {
+    const mappings = snippets.map((s) => `"${s.snippet}" → "${s.expansion}"`);
+    snippetSection = `\n\nSnippet expansion:\nWhen the speaker says one of the following trigger phrases, replace it with the corresponding expansion text. Match the trigger phrase case-insensitively.\n${mappings.join("\n")}`;
+  }
+
+  return `${CLEANUP_BASE_RULES}\n${style}${dictionarySection}${snippetSection}\n\nOutput the cleaned text only. Nothing else.`;
 }
 
 const DEFAULT_MODEL = "google/gemini-2.0-flash";
@@ -82,6 +90,7 @@ export async function cleanupGhostedText(
   model?: string | null,
   writingStyle?: string | null,
   dictionary?: DictionaryEntry[],
+  snippets?: SnippetEntry[],
 ): Promise<string> {
   const apiKey =
     process.env.AI_GATEWAY_API_KEY ?? process.env.VERCEL_AI_API_KEY;
@@ -101,7 +110,7 @@ export async function cleanupGhostedText(
   const t0 = performance.now();
   const result = await generateText({
     model: gateway(selectedModel),
-    system: buildSystemPrompt(writingStyle, dictionary),
+    system: buildSystemPrompt(writingStyle, dictionary, snippets),
     prompt: `[TRANSCRIPTION START]\n${text}\n[TRANSCRIPTION END]`,
     temperature: 0.2,
     maxOutputTokens: 1024,

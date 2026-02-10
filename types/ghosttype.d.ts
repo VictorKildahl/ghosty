@@ -84,6 +84,13 @@ export type DictionaryEntry = {
   createdAt: number;
 };
 
+export type SnippetEntry = {
+  id: string;
+  snippet: string;
+  expansion: string;
+  createdAt: number;
+};
+
 export type GhostTypeAPI = {
   getState: () => Promise<GhostingState>;
   startGhosting: () => Promise<void>;
@@ -108,6 +115,8 @@ export type GhostTypeAPI = {
   ) => Promise<DictionaryEntry>;
   deleteDictionaryEntry: (id: string) => Promise<void>;
   syncDictionary: (entries: DictionaryEntry[]) => Promise<void>;
+  getSnippets: () => Promise<SnippetEntry[]>;
+  syncSnippets: (entries: SnippetEntry[]) => Promise<void>;
   onGhostingState: (callback: (state: GhostingState) => void) => () => void;
   onSettings: (callback: (settings: GhosttypeSettings) => void) => () => void;
   onShortcutPreview: (callback: (preview: string) => void) => () => void;

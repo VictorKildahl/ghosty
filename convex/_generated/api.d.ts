@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as dictionary from "../dictionary.js";
 import type * as sessions from "../sessions.js";
+import type * as snippets from "../snippets.js";
 import type * as stats from "../stats.js";
 import type * as users from "../users.js";
 
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   dictionary: typeof dictionary;
   sessions: typeof sessions;
+  snippets: typeof snippets;
   stats: typeof stats;
   users: typeof users;
 }>;

@@ -6,11 +6,18 @@ import {
   Book,
   LayoutGrid,
   MessageSquare,
+  Scissors,
   Settings,
 } from "lucide-react";
 import { SidebarNavButton } from "./sidebar-nav-button";
 
-export type View = "home" | "stats" | "style" | "dictionary" | "settings";
+export type View =
+  | "home"
+  | "stats"
+  | "style"
+  | "dictionary"
+  | "snippets"
+  | "settings";
 
 export function Sidebar({
   currentView,
@@ -59,6 +66,13 @@ export function Sidebar({
           active={currentView === "dictionary"}
           collapsed={collapsed}
           onClick={() => onNavigate("dictionary")}
+        />
+        <SidebarNavButton
+          icon={Scissors}
+          label="Snippets"
+          active={currentView === "snippets"}
+          collapsed={collapsed}
+          onClick={() => onNavigate("snippets")}
         />
         <SidebarNavButton
           icon={BarChart3}
