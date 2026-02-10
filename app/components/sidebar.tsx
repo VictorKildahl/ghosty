@@ -18,7 +18,7 @@ export function Sidebar({
       <div className="title-bar flex items-center gap-2 px-5 pt-16 pb-6">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="assets/ghosty.png" alt="Ghosty" className="h-7 w-7" />
-        <span className="text-base font-semibold text-ink">Ghosty</span>
+        <span className="text-base font-semibold text-ink">GhostWriter</span>
       </div>
 
       {/* Nav */}

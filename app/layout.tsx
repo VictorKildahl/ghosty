@@ -2,8 +2,9 @@ import { ConvexClientProvider } from "./convex-provider";
 import "./globals.css";
 
 export const metadata = {
-  title: "GhostType",
-  description: "GhostType ghosting status",
+  title: "GhostWriter",
+  description:
+    "GhostWriter is an AI writing assistant that helps you write better messages, emails, and more.",
 };
 
 export default function RootLayout({

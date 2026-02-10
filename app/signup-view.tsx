@@ -52,7 +52,7 @@ export function SignUpView({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="assets/ghosty.png" alt="Ghosty" className="h-12 w-12" />
           <h1 className="text-xl font-semibold text-ink">Create account</h1>
-          <p className="text-sm text-muted">Get started with GhostType</p>
+          <p className="text-sm text-muted">Get started with GhostWriter</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

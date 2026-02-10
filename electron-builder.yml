@@ -1,6 +1,6 @@
-appId: com.ghosttype.app
-productName: GhostType
-copyright: Copyright © 2026 GhostType
+appId: com.ghostwriter.app
+productName: GhostWriter
+copyright: Copyright © 2026 GhostWriter
 
 directories:
   output: release
@@ -45,8 +45,8 @@ mac:
   entitlementsInherit: entitlements.mac.plist
 
 dmg:
-  title: GhostType
-  artifactName: GhostType-${version}-${arch}.dmg
+  title: GhostWriter
+  artifactName: GhostWriter-${version}-${arch}.dmg
 
 asar: true
 

@@ -36,7 +36,7 @@ export function LoginView({
           <img src="assets/ghosty.png" alt="Ghosty" className="h-12 w-12" />
           <h1 className="text-xl font-semibold text-ink">Welcome back</h1>
           <p className="text-sm text-muted">
-            Sign in to your GhostType account
+            Sign in to your GhostWriter account
           </p>
         </div>
 

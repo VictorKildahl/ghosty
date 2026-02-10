@@ -211,14 +211,14 @@ export function HomeView({
               </span>{" "}
               to dictate and let
               <br />
-              GhostType format for you
+              GhostWriter format for you
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               Press and hold{" "}
               <span className="ghosttype-code font-medium text-ghosty">
                 {shortcutLabel}
               </span>{" "}
-              to dictate in any app. GhostType&apos;s{" "}
+              to dictate in any app. GhostWriter&apos;s{" "}
               <span className="font-semibold text-ink">Smart Formatting</span>{" "}
               will handle punctuation, new lines, lists, and adjust when you
               change your mind mid-sentence.

@@ -89,7 +89,7 @@ function createMainWindow() {
     resizable: true,
     show: false,
     backgroundColor: "#ffffff",
-    title: "GhostType",
+    title: "GhostWriter",
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 16, y: 18 },
     icon: resolveAppResourcePath("public/assets", "ghosty-dock.png"),
@@ -202,7 +202,7 @@ function createTray() {
   };
 
   tray.on("click", toggleWindow);
-  tray.setToolTip("GhostType");
+  tray.setToolTip("GhostWriter");
 
   // Cache audio devices and build menu
   listAudioDevices()
@@ -273,7 +273,7 @@ function rebuildTrayMenu() {
     }));
 
   const menu = Menu.buildFromTemplate([
-    { label: "Open GhostType", click: toggleWindow },
+    { label: "Open GhostWriter", click: toggleWindow },
     { type: "separator" },
     { label: "Microphone", submenu: micSubmenu },
     { label: "AI Model", submenu: modelSubmenu },

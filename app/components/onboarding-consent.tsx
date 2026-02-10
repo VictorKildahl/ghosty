@@ -13,12 +13,12 @@ export function OnboardingConsent({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="assets/ghosty.png" alt="Ghosty" className="h-14 w-14" />
           <h1 className="text-xl font-semibold text-ink">
-            Help improve GhostType?
+            Help improve GhostWriter?
           </h1>
         </div>
 
         <p className="mb-2 text-sm leading-relaxed text-muted">
-          We&apos;d love to use your transcriptions to make GhostType more
+          We&apos;d love to use your transcriptions to make GhostWriter more
           accurate over time. If you opt in, your raw and cleaned-up
           transcriptions will be stored securely in the cloud.
         </p>

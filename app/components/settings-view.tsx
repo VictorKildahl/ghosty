@@ -160,7 +160,7 @@ export function SettingsView() {
   }, []);
 
   return (
-    <PageLayout title="Settings" subtitle="Configure how GhostType works.">
+    <PageLayout title="Settings" subtitle="Configure how GhostWriter works.">
       <div className="flex flex-col divide-y divide-border py-2">
         {/* Auto-paste */}
         <div className="flex items-center justify-between py-4">
@@ -362,7 +362,7 @@ export function SettingsView() {
         <div className="flex items-center justify-between py-4">
           <div>
             <p className="text-sm font-medium text-ink">
-              Help improve GhostType
+              Help improve GhostWriter
             </p>
             <p className="mt-0.5 text-xs text-muted">
               Share your transcriptions anonymously to help us improve accuracy.
