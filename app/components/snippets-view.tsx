@@ -20,8 +20,8 @@ import { PageLayout } from "./page-layout";
 /* ── Example pills shown in the intro banner ───────────────────────── */
 const EXAMPLE_SNIPPETS = [
   {
-    snippet: "my email address",
-    expansion: "victor.petersen2@gmail.com",
+    snippet: "LinkedIn",
+    expansion: "https://www.linkedin.com/in/victorkildahl/",
   },
   {
     snippet: "intro email",
