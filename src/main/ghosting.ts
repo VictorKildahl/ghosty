@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
 import { cleanupGhostedText } from "./aiGateway";
 import { detectAppCategory, type AppCategory } from "./appCategory";
-import { startRecording, stopRecording, type RecordingSession } from "./audio";
+import {
+  resolveActiveMicrophone,
+  startRecording,
+  stopRecording,
+  type RecordingSession,
+} from "./audio";
 import { applyGhostedText } from "./paste";
 import type { GhosttypeSettings } from "./settings";
 import { transcribeWithWhisper } from "./whisper";
@@ -62,7 +67,10 @@ export class GhostingController {
       return;
     }
 
-    const session = startRecording(this.getSettings().selectedMicrophone);
+    const activeMic = await resolveActiveMicrophone(
+      this.getSettings().selectedMicrophone,
+    );
+    const session = startRecording(activeMic);
     this.recordingSession = session;
     this.recordingStartTime = Date.now();
     this.recordingAppCategory = detectAppCategory();

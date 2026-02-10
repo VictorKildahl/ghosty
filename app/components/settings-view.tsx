@@ -213,7 +213,7 @@ export function SettingsView() {
                 });
               }}
             >
-              <option value="">Default (device :0)</option>
+              <option value="">System default (auto-detect)</option>
               {audioDevices.map((device) => (
                 <option key={device.index} value={device.name}>
                   {device.name}
@@ -221,7 +221,9 @@ export function SettingsView() {
               ))}
             </select>
             <span className="text-xs text-muted">
-              Select which microphone to use for ghosting.
+              Select which microphone to use for ghosting. If a selected device
+              is unavailable, GhostType will automatically fall back to the
+              system default.
             </span>
           </label>
         </div>

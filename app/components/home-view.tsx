@@ -16,12 +16,14 @@ import { useEffect, useState } from "react";
 export function HomeView({
   stats,
   localTranscripts,
+  userName,
 }: {
   stats: {
     totalWords: number;
     currentStreak: number;
   } | null;
   localTranscripts: LocalTranscript[];
+  userName?: string;
 }) {
   const [state, setState] = useState<GhostingState>({
     phase: "idle",
@@ -96,7 +98,9 @@ export function HomeView({
       {/* Header with stats */}
       <header className="border-b border-border px-8 pt-8 pb-6">
         <div className="flex items-baseline justify-between">
-          <h1 className="text-2xl font-semibold text-ink">Welcome back</h1>
+          <h1 className="text-2xl font-semibold text-ink">
+            Welcome back{userName ? `, ${userName}` : ""}
+          </h1>
           <div className="flex items-center gap-4 text-sm text-muted">
             <span className="flex items-center gap-1.5">
               <span>🔥</span>

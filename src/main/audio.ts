@@ -75,6 +75,28 @@ export function listAudioDevices(): Promise<AudioDevice[]> {
   });
 }
 
+/**
+ * Resolve the microphone to use for recording.
+ * If a microphone name is provided, verify it still exists in the device list.
+ * Falls back to the system default (device :0) when the selected device is
+ * no longer available (e.g. headset unplugged).
+ */
+export async function resolveActiveMicrophone(
+  selectedMicrophone: string | null,
+): Promise<string | null> {
+  if (!selectedMicrophone) return null; // use default
+
+  const devices = await listAudioDevices();
+  const stillAvailable = devices.some((d) => d.name === selectedMicrophone);
+
+  if (stillAvailable) return selectedMicrophone;
+
+  console.log(
+    `[ghosttype] selected microphone "${selectedMicrophone}" not found, falling back to default`,
+  );
+  return null;
+}
+
 export function startRecording(microphone?: string | null): RecordingSession {
   const filePath = path.join(os.tmpdir(), `ghosttype-${Date.now()}.wav`);
   const ffmpegBin = resolveFfmpegBinary();

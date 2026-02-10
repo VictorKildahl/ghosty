@@ -235,7 +235,7 @@ function rebuildTrayMenu() {
 
   const micSubmenu: Electron.MenuItemConstructorOptions[] = [
     {
-      label: "Default (device :0)",
+      label: "System default (auto-detect)",
       type: "radio",
       checked: !currentSettings.selectedMicrophone,
       click: async () => {

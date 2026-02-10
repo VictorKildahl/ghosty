@@ -55,11 +55,29 @@ export function useAuth() {
     setLoading(false);
   }, []);
 
-  // If validation returns null (user deleted), clear session
+  // Sync local auth state with server-validated data (e.g. name changes),
+  // or clear session if user was deleted.
   useEffect(() => {
-    if (auth && validated === null && !loading) {
+    if (!auth || loading) return;
+
+    if (validated === null) {
       setAuth(null);
       clearAuthStorage();
+      return;
+    }
+
+    // Update local state when the server has fresher data (e.g. name)
+    if (
+      validated &&
+      (auth.name !== validated.name || auth.email !== validated.email)
+    ) {
+      const updated: AuthState = {
+        ...auth,
+        email: validated.email,
+        name: validated.name,
+      };
+      setAuth(updated);
+      saveAuthToStorage(updated);
     }
   }, [auth, validated, loading]);
 

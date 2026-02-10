@@ -108,7 +108,11 @@ export default function Page() {
 
         <div className="flex-1 overflow-auto rounded-tl-xl bg-white">
           {view === "home" && (
-            <HomeView stats={stats} localTranscripts={localTranscripts} />
+            <HomeView
+              stats={stats}
+              localTranscripts={localTranscripts}
+              userName={auth?.name}
+            />
           )}
           {view === "stats" && <StatsView stats={stats} />}
           {view === "style" && <StyleView />}
