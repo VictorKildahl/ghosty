@@ -103,9 +103,9 @@ export function SettingsView() {
         )}
       </header>
 
-      <div className="flex flex-col gap-6 px-8 py-6">
+      <div className="flex flex-col divide-y divide-border px-8 py-2">
         {/* Auto-paste */}
-        <div className="flex items-center justify-between rounded-xl border border-border bg-white p-4">
+        <div className="flex items-center justify-between py-4">
           <div>
             <p className="text-sm font-medium text-ink">
               Auto-paste ghosted text
@@ -136,7 +136,7 @@ export function SettingsView() {
         </div>
 
         {/* AI cleanup */}
-        <div className="flex items-center justify-between rounded-xl border border-border bg-white p-4">
+        <div className="flex items-center justify-between py-4">
           <div>
             <p className="text-sm font-medium text-ink">AI cleanup</p>
             <p className="mt-0.5 text-xs text-muted">
@@ -165,7 +165,7 @@ export function SettingsView() {
         </div>
 
         {/* Ghosting shortcut */}
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="py-4">
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-ink">Ghosting shortcut</span>
             <input
@@ -200,7 +200,7 @@ export function SettingsView() {
         </div>
 
         {/* Microphone */}
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="py-4">
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-ink">Microphone</span>
             <select
@@ -229,7 +229,7 @@ export function SettingsView() {
         </div>
 
         {/* AI Model */}
-        <div className="rounded-xl border border-border bg-white p-4">
+        <div className="py-4">
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-ink">AI model</span>
             <select
@@ -253,7 +253,7 @@ export function SettingsView() {
         </div>
 
         {/* Share transcripts */}
-        <div className="flex items-center justify-between rounded-xl border border-border bg-white p-4">
+        <div className="flex items-center justify-between py-4">
           <div>
             <p className="text-sm font-medium text-ink">
               Help improve GhostType
@@ -287,7 +287,9 @@ export function SettingsView() {
           </button>
         </div>
 
-        {settingsError && <p className="text-xs text-ember">{settingsError}</p>}
+        {settingsError && (
+          <p className="text-xs text-ember py-4">{settingsError}</p>
+        )}
       </div>
     </div>
   );
