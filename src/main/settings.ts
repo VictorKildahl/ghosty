@@ -20,6 +20,8 @@ export type GhostingShortcutInput = {
   ctrl: boolean;
 };
 
+export type WritingStyle = "formal" | "casual" | "very-casual";
+
 export type GhosttypeSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut;
@@ -27,6 +29,7 @@ export type GhosttypeSettings = {
   aiCleanup: boolean;
   aiModel: string;
   shareTranscripts: boolean;
+  writingStyle: WritingStyle;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -36,6 +39,7 @@ export type GhosttypeSettingsUpdate = {
   aiCleanup?: boolean;
   aiModel?: string;
   shareTranscripts?: boolean;
+  writingStyle?: WritingStyle;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -52,6 +56,7 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
   aiCleanup: true,
   aiModel: "google/gemini-2.0-flash",
   shareTranscripts: false,
+  writingStyle: "casual",
 };
 
 const MODIFIER_CODES = new Set([
@@ -305,6 +310,13 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? record.shareTranscripts
       : DEFAULT_SETTINGS.shareTranscripts;
 
+  const VALID_STYLES = new Set(["formal", "casual", "very-casual"]);
+  const writingStyle =
+    typeof record.writingStyle === "string" &&
+    VALID_STYLES.has(record.writingStyle)
+      ? (record.writingStyle as WritingStyle)
+      : DEFAULT_SETTINGS.writingStyle;
+
   return {
     autoPaste,
     shortcut,
@@ -312,6 +324,7 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
     aiCleanup,
     aiModel,
     shareTranscripts,
+    writingStyle,
   };
 }
 
@@ -351,6 +364,7 @@ export async function updateSettings(
     aiCleanup: patch.aiCleanup ?? current.aiCleanup,
     aiModel: patch.aiModel ?? current.aiModel,
     shareTranscripts: patch.shareTranscripts ?? current.shareTranscripts,
+    writingStyle: patch.writingStyle ?? current.writingStyle,
   };
 
   await saveSettings(next);

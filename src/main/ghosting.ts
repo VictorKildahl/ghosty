@@ -96,10 +96,11 @@ export class GhostingController {
       this.setState({ phase: "cleaning", lastRawText: rawText });
 
       const { autoPaste, aiCleanup, aiModel } = this.getSettings();
+      const writingStyle = this.getSettings().writingStyle;
       let finalText: string;
 
       if (aiCleanup) {
-        finalText = await cleanupGhostedText(rawText, aiModel);
+        finalText = await cleanupGhostedText(rawText, aiModel, writingStyle);
       } else {
         console.log("[ghosttype] ai cleanup skipped");
         finalText = rawText;

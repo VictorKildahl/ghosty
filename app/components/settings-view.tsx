@@ -2,9 +2,27 @@
 
 import { formatShortcut } from "@/lib/ghost-helpers";
 import { cn } from "@/lib/utils";
-import type { AudioDevice, GhosttypeSettings } from "@/types/ghosttype";
+import type {
+  AudioDevice,
+  GhosttypeSettings,
+  WritingStyle,
+} from "@/types/ghosttype";
 import { AI_MODEL_OPTIONS } from "@/types/models";
 import { useEffect, useState } from "react";
+
+const WRITING_STYLES: {
+  id: WritingStyle;
+  label: string;
+  description: string;
+}[] = [
+  { id: "formal", label: "Formal.", description: "Caps + Punctuation" },
+  { id: "casual", label: "Casual", description: "Caps + Less punctuation" },
+  {
+    id: "very-casual",
+    label: "very casual",
+    description: "No Caps + Less punctuation",
+  },
+];
 
 type SettingsError = string | null;
 
@@ -53,6 +71,7 @@ export function SettingsView() {
     aiCleanup?: boolean;
     aiModel?: string;
     shareTranscripts?: boolean;
+    writingStyle?: WritingStyle;
   }) {
     if (!window.ghosttype) return;
     try {
@@ -248,6 +267,46 @@ export function SettingsView() {
               Faster models reduce latency between speaking and pasting.
             </span>
           </label>
+        </div>
+
+        {/* Writing style */}
+        <div className="rounded-xl border border-border bg-white p-4">
+          <p className="text-sm font-medium text-ink">Writing style</p>
+          <p className="mt-0.5 mb-3 text-xs text-muted">
+            Controls the tone and formatting of your cleaned-up text.
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            {WRITING_STYLES.map((style) => {
+              const isSelected =
+                (settings?.writingStyle ?? "casual") === style.id;
+              return (
+                <button
+                  key={style.id}
+                  type="button"
+                  onClick={() => updateSettings({ writingStyle: style.id })}
+                  className={cn(
+                    "flex flex-col items-start rounded-lg border-2 p-3 text-left transition",
+                    isSelected
+                      ? "border-accent bg-accent/5"
+                      : "border-border bg-sidebar hover:border-accent/40",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "text-sm font-semibold",
+                      style.id === "very-casual" ? "lowercase" : "",
+                      isSelected ? "text-accent" : "text-ink",
+                    )}
+                  >
+                    {style.label}
+                  </span>
+                  <span className="mt-0.5 text-[11px] text-muted">
+                    {style.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Share transcripts */}

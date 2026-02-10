@@ -34,6 +34,8 @@ export type AudioDevice = {
   name: string;
 };
 
+export type WritingStyle = "formal" | "casual" | "very-casual";
+
 export type GhosttypeSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut;
@@ -41,6 +43,7 @@ export type GhosttypeSettings = {
   aiCleanup: boolean;
   aiModel: string;
   shareTranscripts: boolean;
+  writingStyle: WritingStyle;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -50,6 +53,7 @@ export type GhosttypeSettingsUpdate = {
   aiCleanup?: boolean;
   aiModel?: string;
   shareTranscripts?: boolean;
+  writingStyle?: WritingStyle;
 };
 
 export type SessionEvent = {

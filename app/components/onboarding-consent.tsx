@@ -1,6 +1,6 @@
 "use client";
 
-export function ConsentView({
+export function OnboardingConsent({
   onChoice,
 }: {
   onChoice: (shareTranscripts: boolean) => void;

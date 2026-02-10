@@ -1,7 +1,7 @@
 "use client";
 
-import { ConsentView } from "@/app/components/consent-view";
 import { HomeView } from "@/app/components/home-view";
+import { OnboardingView } from "@/app/components/onboarding-view";
 import { SettingsView } from "@/app/components/settings-view";
 import { Sidebar, type View } from "@/app/components/sidebar";
 import { StatsView } from "@/app/components/stats-view";
@@ -9,6 +9,7 @@ import { LoginView } from "@/app/login-view";
 import { SignUpView } from "@/app/signup-view";
 import { useAuth } from "@/app/use-auth";
 import { useGhostStats } from "@/app/use-ghost-stats";
+import type { WritingStyle } from "@/types/ghosttype";
 import { useCallback, useState } from "react";
 
 type AuthView = "login" | "signup";
@@ -16,7 +17,7 @@ type AuthView = "login" | "signup";
 export default function Page() {
   const [view, setView] = useState<View>("home");
   const [authView, setAuthView] = useState<AuthView>("login");
-  const [showConsent, setShowConsent] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const {
     auth,
@@ -33,21 +34,27 @@ export default function Page() {
   const handleSignUp = useCallback(
     async (email: string, password: string, name?: string) => {
       const result = await signUp(email, password, name);
-      setShowConsent(true);
+      setShowOnboarding(true);
       return result;
     },
     [signUp],
   );
 
-  // Handle the consent choice
-  const handleConsent = useCallback(async (shareTranscripts: boolean) => {
-    try {
-      await window.ghosttype?.updateSettings({ shareTranscripts });
-    } catch {
-      // Settings will remain at default (false) if IPC fails
-    }
-    setShowConsent(false);
-  }, []);
+  // Handle the onboarding completion (consent + style)
+  const handleOnboardingComplete = useCallback(
+    async (shareTranscripts: boolean, writingStyle: WritingStyle) => {
+      try {
+        await window.ghosttype?.updateSettings({
+          shareTranscripts,
+          writingStyle,
+        });
+      } catch {
+        // Settings will remain at defaults if IPC fails
+      }
+      setShowOnboarding(false);
+    },
+    [],
+  );
 
   // --------------- Loading ---------------
   if (authLoading) {
@@ -76,9 +83,9 @@ export default function Page() {
     );
   }
 
-  // --------------- Consent prompt (after signup) ---------------
-  if (showConsent) {
-    return <ConsentView onChoice={handleConsent} />;
+  // --------------- Onboarding (after signup) ---------------
+  if (showOnboarding) {
+    return <OnboardingView onComplete={handleOnboardingComplete} />;
   }
 
   // --------------- Authenticated app ---------------
