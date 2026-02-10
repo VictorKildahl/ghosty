@@ -51,13 +51,18 @@ export default function Page() {
     [signUp],
   );
 
-  // Handle the onboarding completion (consent + style)
+  // Handle the onboarding completion (consent + style + display)
   const handleOnboardingComplete = useCallback(
-    async (shareTranscripts: boolean, stylePreferences: StylePreferences) => {
+    async (
+      shareTranscripts: boolean,
+      stylePreferences: StylePreferences,
+      overlayDisplayId: number | null,
+    ) => {
       try {
         await window.ghosttype?.updateSettings({
           shareTranscripts,
           stylePreferences,
+          overlayDisplayId,
         });
       } catch {
         // Settings will remain at defaults if IPC fails
