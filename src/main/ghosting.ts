@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { cleanupGhostedText } from "./aiGateway";
 import { detectAppCategory, type AppCategory } from "./appCategory";
 import {
-  resolveActiveMicrophone,
+  getDefaultInputDeviceName,
   startRecording,
   stopRecording,
   type RecordingSession,
@@ -29,6 +29,7 @@ export class GhostingController {
   private recordingSession: RecordingSession | null = null;
   private recordingStartTime: number | null = null;
   private recordingAppCategory: AppCategory = "other";
+  private pendingStop = false;
   private state: GhostingState = {
     phase: "idle",
     lastGhostedText: "",
@@ -67,23 +68,43 @@ export class GhostingController {
       return;
     }
 
-    const activeMic = await resolveActiveMicrophone(
-      this.getSettings().selectedMicrophone,
-    );
-    const session = startRecording(activeMic);
-    this.recordingSession = session;
-    this.recordingStartTime = Date.now();
-    this.recordingAppCategory = detectAppCategory();
-    this.setState({ phase: "recording", error: null });
+    this.pendingStop = false;
 
-    session.process.once("error", (error) => {
-      this.recordingSession = null;
-      this.setState({ phase: "error", error: error.message });
-    });
+    // When the user hasn't picked a specific mic, resolve the real macOS
+    // default input device (cached, fast) instead of blindly using index 0.
+    const configured = this.getSettings().selectedMicrophone ?? null;
+    const selectedMic = configured ?? (await getDefaultInputDeviceName());
+
+    try {
+      const session = startRecording(selectedMic);
+      this.recordingSession = session;
+      this.recordingStartTime = Date.now();
+      this.recordingAppCategory = detectAppCategory();
+      this.setState({ phase: "recording", error: null });
+
+      session.process.once("error", (error) => {
+        this.recordingSession = null;
+        this.setState({ phase: "error", error: error.message });
+      });
+
+      // If stopGhosting was called while we were setting up, honour it now.
+      if (this.pendingStop) {
+        this.pendingStop = false;
+        await this.stopGhosting();
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start recording";
+      this.setState({ phase: "error", error: message });
+    }
   }
 
   async stopGhosting() {
-    if (this.state.phase !== "recording" || !this.recordingSession) return;
+    if (this.state.phase !== "recording" || !this.recordingSession) {
+      // startGhosting may still be setting up – flag so it stops once ready.
+      this.pendingStop = true;
+      return;
+    }
 
     const session = this.recordingSession;
     const durationMs = this.recordingStartTime

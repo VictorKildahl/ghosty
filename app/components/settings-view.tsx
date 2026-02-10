@@ -4,7 +4,7 @@ import { formatShortcut } from "@/lib/ghost-helpers";
 import { cn } from "@/lib/utils";
 import type { AudioDevice, GhosttypeSettings } from "@/types/ghosttype";
 import { AI_MODEL_OPTIONS } from "@/types/models";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type SettingsError = string | null;
 
@@ -15,6 +15,9 @@ export function SettingsView() {
   const [shortcutCapture, setShortcutCapture] = useState(false);
   const [capturePreview, setCapturePreview] = useState("Press new shortcut...");
   const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([]);
+  const [defaultDeviceName, setDefaultDeviceName] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!window.ghosttype) {
@@ -30,6 +33,10 @@ export function SettingsView() {
     window.ghosttype
       .getAudioDevices()
       .then(setAudioDevices)
+      .catch(() => undefined);
+    window.ghosttype
+      .getDefaultInputDevice()
+      .then(setDefaultDeviceName)
       .catch(() => undefined);
 
     const unsubscribeSettings = window.ghosttype.onSettings((next) => {
@@ -88,6 +95,68 @@ export function SettingsView() {
     setShortcutCapture(false);
     setCapturePreview("Press new shortcut...");
   }
+
+  /* ---- Mic test ---- */
+  const [micTesting, setMicTesting] = useState(false);
+  const [micLevel, setMicLevel] = useState(0);
+  const smoothedLevel = useRef(0);
+  const rafId = useRef<number | null>(null);
+  const rawLevel = useRef(0);
+
+  // Smooth the level meter using requestAnimationFrame for fluid animation.
+  const tickLevel = useCallback(() => {
+    const target = rawLevel.current;
+    // Faster attack, slower release – feels natural.
+    const alpha = target > smoothedLevel.current ? 0.35 : 0.12;
+    smoothedLevel.current += (target - smoothedLevel.current) * alpha;
+    setMicLevel(smoothedLevel.current);
+    rafId.current = requestAnimationFrame(tickLevel);
+  }, []);
+
+  async function startMicTest() {
+    if (!window.ghosttype) return;
+    // Use whichever mic is currently shown in the dropdown (may differ from saved setting).
+    const mic = settings?.selectedMicrophone ?? null;
+    await window.ghosttype.startMicTest(mic);
+    setMicTesting(true);
+    rawLevel.current = 0;
+    smoothedLevel.current = 0;
+    rafId.current = requestAnimationFrame(tickLevel);
+  }
+
+  async function stopMicTest() {
+    if (!window.ghosttype) return;
+    await window.ghosttype.stopMicTest();
+    setMicTesting(false);
+    rawLevel.current = 0;
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    setMicLevel(0);
+  }
+
+  // Subscribe to mic-level events from main process.
+  useEffect(() => {
+    if (!window.ghosttype) return;
+    const unsub = window.ghosttype.onMicLevel((level) => {
+      rawLevel.current = level;
+    });
+    return () => {
+      unsub();
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
+    };
+  }, []);
+
+  // Ensure mic test is stopped when component unmounts.
+  useEffect(() => {
+    return () => {
+      window.ghosttype?.stopMicTest().catch(() => undefined);
+    };
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
@@ -211,9 +280,15 @@ export function SettingsView() {
                 updateSettings({
                   selectedMicrophone: value === "" ? null : value,
                 });
+                // Stop any running test so the user re-tests with the new mic.
+                if (micTesting) stopMicTest();
               }}
             >
-              <option value="">System default (auto-detect)</option>
+              <option value="">
+                {defaultDeviceName
+                  ? `System default (${defaultDeviceName})`
+                  : "System default (auto-detect)"}
+              </option>
               {audioDevices.map((device) => (
                 <option key={device.index} value={device.name}>
                   {device.name}
@@ -221,11 +296,53 @@ export function SettingsView() {
               ))}
             </select>
             <span className="text-xs text-muted">
-              Select which microphone to use for ghosting. If a selected device
-              is unavailable, GhostType will automatically fall back to the
-              system default.
+              Select which microphone to use for ghosting.
+              {defaultDeviceName && !settings?.selectedMicrophone && (
+                <>
+                  {" "}
+                  Currently using <strong>{defaultDeviceName}</strong>.
+                </>
+              )}
             </span>
           </label>
+
+          {/* Mic test */}
+          <div className="mt-3 flex flex-col gap-2">
+            <button
+              type="button"
+              className={cn(
+                "self-start rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                micTesting
+                  ? "bg-ember/10 text-ember hover:bg-ember/20"
+                  : "bg-accent/10 text-accent hover:bg-accent/20",
+              )}
+              onClick={micTesting ? stopMicTest : startMicTest}
+            >
+              {micTesting ? "Stop test" : "Test microphone"}
+            </button>
+
+            {micTesting && (
+              <div className="flex items-center gap-3">
+                <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-border">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-75"
+                    style={{
+                      width: `${Math.min(100, micLevel * 400)}%`,
+                      backgroundColor:
+                        micLevel * 400 > 80
+                          ? "#d6764b"
+                          : micLevel * 400 > 40
+                            ? "#e6b94d"
+                            : "#2f6f5e",
+                    }}
+                  />
+                </div>
+                <span className="w-8 text-right font-mono text-[10px] text-muted">
+                  {Math.round(Math.min(100, micLevel * 400))}%
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* AI Model */}

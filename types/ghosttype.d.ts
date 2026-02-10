@@ -85,6 +85,10 @@ export type GhostTypeAPI = {
     patch: GhosttypeSettingsUpdate,
   ) => Promise<GhosttypeSettings>;
   getAudioDevices: () => Promise<AudioDevice[]>;
+  getDefaultInputDevice: () => Promise<string | null>;
+  startMicTest: (microphone: string | null) => Promise<void>;
+  stopMicTest: () => Promise<void>;
+  onMicLevel: (callback: (level: number) => void) => () => void;
   startShortcutCapture: () => Promise<GhosttypeSettings>;
   stopShortcutCapture: () => Promise<void>;
   getDeviceId: () => Promise<string>;

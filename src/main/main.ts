@@ -10,7 +10,12 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import { AI_MODEL_OPTIONS } from "../../types/models";
-import { listAudioDevices } from "./audio";
+import {
+  getDefaultInputDeviceName,
+  listAudioDevices,
+  startMicTest,
+  type MicTestSession,
+} from "./audio";
 import { getDeviceId } from "./deviceId";
 import { GhostingController } from "./ghosting";
 import { registerGhostingHotkey } from "./hotkey";
@@ -60,6 +65,7 @@ let trayIcons: {
 } | null = null;
 let settings: GhosttypeSettings | null = null;
 let isCapturingShortcut = false;
+let activeMicTest: MicTestSession | null = null;
 
 function resolveRendererUrl() {
   const staticPath = path.join(app.getAppPath(), "out", "index.html");
@@ -84,7 +90,7 @@ function createMainWindow() {
     show: false,
     backgroundColor: "#ffffff",
     title: "GhostType",
-    titleBarStyle: "hidden",
+    titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 16, y: 18 },
     icon: resolveAppResourcePath("public/assets", "ghosty-dock.png"),
     webPreferences: {
@@ -103,17 +109,6 @@ function createMainWindow() {
 
   win.once("ready-to-show", () => {
     win.show();
-    // Ensure traffic lights are visible after first paint
-    win.setWindowButtonVisibility(true);
-  });
-
-  // Keep macOS traffic lights visible when the window loses focus
-  win.on("blur", () => {
-    setTimeout(() => {
-      if (!win.isDestroyed()) {
-        win.setWindowButtonVisibility(true);
-      }
-    }, 0);
   });
 
   return win;
@@ -333,6 +328,25 @@ function setupIpc(controller: GhostingController) {
     isCapturingShortcut = false;
   });
   ipcMain.handle("ghosting:get-audio-devices", () => listAudioDevices());
+  ipcMain.handle("ghosting:get-default-input-device", () =>
+    getDefaultInputDeviceName(),
+  );
+  ipcMain.handle(
+    "ghosting:start-mic-test",
+    async (_event, microphone: string | null) => {
+      // Stop any existing test first.
+      activeMicTest?.stop();
+      // Resolve the real macOS default when no mic is specified.
+      const resolvedMic = microphone ?? (await getDefaultInputDeviceName());
+      activeMicTest = startMicTest(resolvedMic, (level) => {
+        mainWindow?.webContents.send("ghosting:mic-level", level);
+      });
+    },
+  );
+  ipcMain.handle("ghosting:stop-mic-test", () => {
+    activeMicTest?.stop();
+    activeMicTest = null;
+  });
   ipcMain.handle("ghosting:get-device-id", () => getDeviceId());
   ipcMain.handle("ghosting:get-local-transcripts", () =>
     loadLocalTranscripts(),
@@ -409,6 +423,10 @@ app.whenReady().then(async () => {
   Menu.setApplicationMenu(appMenu);
 
   settings = await loadSettings();
+
+  // Pre-warm the default input device cache so the first ghosting
+  // attempt is instant even when "System default" is selected.
+  getDefaultInputDeviceName().catch(() => undefined);
 
   mainWindow = createMainWindow();
   overlayWindow = createOverlayWindow();

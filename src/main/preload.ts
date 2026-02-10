@@ -22,6 +22,25 @@ const api = {
     ) as Promise<GhosttypeSettings>,
   getAudioDevices: () =>
     ipcRenderer.invoke("ghosting:get-audio-devices") as Promise<AudioDevice[]>,
+  getDefaultInputDevice: () =>
+    ipcRenderer.invoke("ghosting:get-default-input-device") as Promise<
+      string | null
+    >,
+  startMicTest: (microphone: string | null) =>
+    ipcRenderer.invoke("ghosting:start-mic-test", microphone) as Promise<void>,
+  stopMicTest: () =>
+    ipcRenderer.invoke("ghosting:stop-mic-test") as Promise<void>,
+  onMicLevel: (callback: (level: number) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, level: number) => {
+      callback(level);
+    };
+
+    ipcRenderer.on("ghosting:mic-level", listener);
+
+    return () => {
+      ipcRenderer.removeListener("ghosting:mic-level", listener);
+    };
+  },
   startShortcutCapture: () =>
     ipcRenderer.invoke(
       "ghosting:start-shortcut-capture",
