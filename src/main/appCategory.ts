@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 
-export type AppCategory = "personal" | "work" | "email" | "other";
+export type AppCategory = "personal" | "work" | "email" | "code" | "other";
 
 /**
  * Known macOS bundle IDs mapped to app categories.
@@ -43,6 +43,29 @@ const BUNDLE_CATEGORY: Record<string, AppCategory> = {
   "com.airmail.Airmail-Beta": "email",
   "it.bloop.airmail2": "email",
   "com.mimestream.Mimestream": "email",
+
+  // ── Code editors / IDEs ─────────────────────────────────────────────
+  "com.microsoft.VSCode": "code",
+  "com.todesktop.230313mzl4w4u92": "code", // Cursor
+  "dev.zed.Zed": "code",
+  "com.sublimetext.4": "code",
+  "com.sublimetext.3": "code",
+  "com.jetbrains.intellij": "code",
+  "com.jetbrains.WebStorm": "code",
+  "com.jetbrains.pycharm": "code",
+  "com.jetbrains.goland": "code",
+  "com.jetbrains.rider": "code",
+  "com.jetbrains.CLion": "code",
+  "com.jetbrains.PhpStorm": "code",
+  "com.jetbrains.rubymine": "code",
+  "com.jetbrains.AppCode": "code",
+  "com.jetbrains.DataGrip": "code",
+  "com.googlecode.iterm2": "code",
+  "com.apple.Terminal": "code",
+  "net.kovidgoyal.kitty": "code",
+  "co.zeit.hyper": "code",
+  "com.github.wez.wezterm": "code",
+  "dev.warp.Warp-Stable": "code",
 };
 
 /**

@@ -9,6 +9,7 @@ import { Sidebar, type View } from "@/app/components/sidebar";
 import { SnippetsView } from "@/app/components/snippets-view";
 import { StatsView } from "@/app/components/stats-view";
 import { StyleView } from "@/app/components/style-view";
+import { VibeCodeView } from "@/app/components/vibecode-view";
 import { LoginView } from "@/app/login-view";
 import { SignUpView } from "@/app/signup-view";
 import { useAuth } from "@/app/use-auth";
@@ -137,6 +138,7 @@ export default function Page() {
           {view === "style" && <StyleView />}
           {view === "dictionary" && <DictionaryView userId={auth!.userId} />}
           {view === "snippets" && <SnippetsView userId={auth!.userId} />}
+          {view === "vibecode" && <VibeCodeView />}
           {view === "settings" && <SettingsView />}
         </div>
       </div>

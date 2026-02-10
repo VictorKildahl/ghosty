@@ -12,9 +12,11 @@ import {
   type RecordingSession,
 } from "./audio";
 import { loadDictionary } from "./dictionaryStore";
+import { detectActiveEditorContext } from "./editorContext";
 import { applyGhostedText } from "./paste";
 import type { GhosttypeSettings } from "./settings";
 import { loadSnippets } from "./snippetStore";
+import { readVibeCodeFileContents } from "./vibeCodeStore";
 import { transcribeWithWhisper } from "./whisper";
 
 export type GhostingPhase =
@@ -145,12 +147,33 @@ export class GhostingController {
       if (aiCleanup) {
         const dictionary = await loadDictionary();
         const snippets = await loadSnippets();
+
+        // Load vibe code context when in a code editor with vibe code enabled
+        const vibeCodeEnabled = this.getSettings().vibeCodeEnabled;
+        const isCodeApp = this.recordingAppCategory === "code";
+        let vibeCodeFiles = undefined;
+
+        if (vibeCodeEnabled && isCodeApp) {
+          // Auto-detect the currently open file in the editor
+          const autoContext = await detectActiveEditorContext();
+          // Load manually pinned files
+          const pinnedContext = await readVibeCodeFileContents();
+          // Merge: auto-detected first, then pinned (dedup by filePath)
+          const combined = [...autoContext];
+          const autoPaths = new Set(autoContext.map((f) => f.filePath));
+          for (const pinned of pinnedContext) {
+            if (!autoPaths.has(pinned.filePath)) combined.push(pinned);
+          }
+          if (combined.length > 0) vibeCodeFiles = combined;
+        }
+
         finalText = await cleanupGhostedText(
           rawText,
           aiModel,
           writingStyle,
           dictionary,
           snippets,
+          vibeCodeFiles,
         );
       } else {
         console.log("[ghosttype] ai cleanup skipped");

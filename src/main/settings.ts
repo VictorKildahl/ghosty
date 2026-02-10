@@ -22,7 +22,7 @@ export type GhostingShortcutInput = {
 
 export type WritingStyle = "formal" | "casual" | "very-casual" | "excited";
 
-export type AppCategory = "personal" | "work" | "email" | "other";
+export type AppCategory = "personal" | "work" | "email" | "code" | "other";
 
 export type StylePreferences = Record<AppCategory, WritingStyle>;
 
@@ -35,6 +35,7 @@ export type GhosttypeSettings = {
   shareTranscripts: boolean;
   stylePreferences: StylePreferences;
   overlayDisplayId: number | null;
+  vibeCodeEnabled: boolean;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -46,6 +47,7 @@ export type GhosttypeSettingsUpdate = {
   shareTranscripts?: boolean;
   stylePreferences?: Partial<StylePreferences>;
   overlayDisplayId?: number | null;
+  vibeCodeEnabled?: boolean;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -66,9 +68,11 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
     personal: "casual",
     work: "casual",
     email: "casual",
+    code: "casual",
     other: "casual",
   },
   overlayDisplayId: null,
+  vibeCodeEnabled: false,
 };
 
 const MODIFIER_CODES = new Set([
@@ -327,7 +331,13 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
   const rawPrefs = record.stylePreferences as
     | Record<string, unknown>
     | undefined;
-  const categories: AppCategory[] = ["personal", "work", "email", "other"];
+  const categories: AppCategory[] = [
+    "personal",
+    "work",
+    "email",
+    "code",
+    "other",
+  ];
   const stylePreferences = { ...DEFAULT_SETTINGS.stylePreferences };
   if (rawPrefs && typeof rawPrefs === "object") {
     for (const cat of categories) {
@@ -355,6 +365,11 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? record.overlayDisplayId
       : null;
 
+  const vibeCodeEnabled =
+    typeof record.vibeCodeEnabled === "boolean"
+      ? record.vibeCodeEnabled
+      : DEFAULT_SETTINGS.vibeCodeEnabled;
+
   return {
     autoPaste,
     shortcut,
@@ -364,6 +379,7 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
     shareTranscripts,
     stylePreferences,
     overlayDisplayId,
+    vibeCodeEnabled,
   };
 }
 
@@ -411,6 +427,7 @@ export async function updateSettings(
       patch.overlayDisplayId !== undefined
         ? patch.overlayDisplayId
         : current.overlayDisplayId,
+    vibeCodeEnabled: patch.vibeCodeEnabled ?? current.vibeCodeEnabled,
   };
 
   await saveSettings(next);

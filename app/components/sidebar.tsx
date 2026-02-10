@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   BarChart3,
   Book,
+  Code2,
   LayoutGrid,
   MessageSquare,
   Scissors,
@@ -17,6 +18,7 @@ export type View =
   | "style"
   | "dictionary"
   | "snippets"
+  | "vibecode"
   | "settings";
 
 export function Sidebar({
@@ -73,6 +75,13 @@ export function Sidebar({
           active={currentView === "snippets"}
           collapsed={collapsed}
           onClick={() => onNavigate("snippets")}
+        />
+        <SidebarNavButton
+          icon={Code2}
+          label="Vibe coding"
+          active={currentView === "vibecode"}
+          collapsed={collapsed}
+          onClick={() => onNavigate("vibecode")}
         />
         <SidebarNavButton
           icon={BarChart3}

@@ -46,6 +46,7 @@ export function OnboardingStyle({
       personal: selectedStyle,
       work: selectedStyle,
       email: selectedStyle,
+      code: selectedStyle,
       other: selectedStyle,
     });
   }

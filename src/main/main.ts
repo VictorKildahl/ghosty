@@ -1,6 +1,7 @@
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   Menu,
   nativeImage,
@@ -40,6 +41,12 @@ import {
   loadLocalTranscripts,
   saveLocalTranscript,
 } from "./transcriptStore";
+import {
+  addVibeCodeFile,
+  loadVibeCodeFiles,
+  removeVibeCodeFile,
+  type VibeCodeFile,
+} from "./vibeCodeStore";
 
 function loadEnvFile() {
   const root = app.isPackaged ? process.resourcesPath : app.getAppPath();
@@ -461,6 +468,75 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle("snippets:sync", (_event, entries: SnippetEntry[]) =>
     syncSnippets(entries),
   );
+
+  // Vibe Code
+  ipcMain.handle("vibecode:get-files", () => loadVibeCodeFiles());
+  ipcMain.handle("vibecode:add-file", (_event, filePath: string) =>
+    addVibeCodeFile(filePath),
+  );
+  ipcMain.handle("vibecode:remove-file", (_event, id: string) =>
+    removeVibeCodeFile(id),
+  );
+  ipcMain.handle("vibecode:pick-files", async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile", "multiSelections"],
+      title: "Tag files for Vibe Code context",
+      message:
+        "Select source files to give GhostWriter context about your codebase",
+      filters: [
+        {
+          name: "Source Files",
+          extensions: [
+            "ts",
+            "tsx",
+            "js",
+            "jsx",
+            "py",
+            "rs",
+            "go",
+            "java",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "h",
+            "hpp",
+            "cs",
+            "rb",
+            "php",
+            "vue",
+            "svelte",
+            "html",
+            "css",
+            "scss",
+            "json",
+            "yaml",
+            "yml",
+            "toml",
+            "md",
+            "txt",
+            "sql",
+            "graphql",
+            "proto",
+            "sh",
+            "zsh",
+            "bash",
+            "dockerfile",
+          ],
+        },
+        { name: "All Files", extensions: ["*"] },
+      ],
+    });
+
+    if (result.canceled || result.filePaths.length === 0) return [];
+
+    const added: VibeCodeFile[] = [];
+    for (const filePath of result.filePaths) {
+      const entry = await addVibeCodeFile(filePath);
+      added.push(entry);
+    }
+    return added;
+  });
 
   ipcMain.on("overlay:set-ignore-mouse", (_event, ignore: boolean) => {
     if (!overlayWindow) return;

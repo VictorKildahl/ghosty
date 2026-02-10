@@ -36,9 +36,16 @@ export type AudioDevice = {
 
 export type WritingStyle = "formal" | "casual" | "very-casual" | "excited";
 
-export type AppCategory = "personal" | "work" | "email" | "other";
+export type AppCategory = "personal" | "work" | "email" | "code" | "other";
 
 export type StylePreferences = Record<AppCategory, WritingStyle>;
+
+export type VibeCodeFile = {
+  id: string;
+  filePath: string;
+  label: string;
+  addedAt: number;
+};
 
 export type GhosttypeSettings = {
   autoPaste: boolean;
@@ -49,6 +56,7 @@ export type GhosttypeSettings = {
   shareTranscripts: boolean;
   stylePreferences: StylePreferences;
   overlayDisplayId: number | null;
+  vibeCodeEnabled: boolean;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -60,6 +68,7 @@ export type GhosttypeSettingsUpdate = {
   shareTranscripts?: boolean;
   stylePreferences?: Partial<StylePreferences>;
   overlayDisplayId?: number | null;
+  vibeCodeEnabled?: boolean;
 };
 
 export type SessionEvent = {
@@ -130,6 +139,10 @@ export type GhostTypeAPI = {
   syncDictionary: (entries: DictionaryEntry[]) => Promise<void>;
   getSnippets: () => Promise<SnippetEntry[]>;
   syncSnippets: (entries: SnippetEntry[]) => Promise<void>;
+  getVibeCodeFiles: () => Promise<VibeCodeFile[]>;
+  addVibeCodeFile: (filePath: string) => Promise<VibeCodeFile>;
+  removeVibeCodeFile: (id: string) => Promise<void>;
+  pickVibeCodeFiles: () => Promise<VibeCodeFile[]>;
   onGhostingState: (callback: (state: GhostingState) => void) => () => void;
   onSettings: (callback: (settings: GhosttypeSettings) => void) => () => void;
   onShortcutPreview: (callback: (preview: string) => void) => () => void;

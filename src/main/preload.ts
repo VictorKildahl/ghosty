@@ -9,6 +9,7 @@ import type {
   LocalTranscript,
   SessionEvent,
   SnippetEntry,
+  VibeCodeFile,
 } from "../../types/ghosttype";
 
 const api = {
@@ -76,6 +77,14 @@ const api = {
     ipcRenderer.invoke("snippets:get-all") as Promise<SnippetEntry[]>,
   syncSnippets: (entries: SnippetEntry[]) =>
     ipcRenderer.invoke("snippets:sync", entries) as Promise<void>,
+  getVibeCodeFiles: () =>
+    ipcRenderer.invoke("vibecode:get-files") as Promise<VibeCodeFile[]>,
+  addVibeCodeFile: (filePath: string) =>
+    ipcRenderer.invoke("vibecode:add-file", filePath) as Promise<VibeCodeFile>,
+  removeVibeCodeFile: (id: string) =>
+    ipcRenderer.invoke("vibecode:remove-file", id) as Promise<void>,
+  pickVibeCodeFiles: () =>
+    ipcRenderer.invoke("vibecode:pick-files") as Promise<VibeCodeFile[]>,
   onGhostingState: (callback: (state: GhostingState) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
