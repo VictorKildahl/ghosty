@@ -2,7 +2,11 @@
 
 import { formatShortcut } from "@/lib/ghost-helpers";
 import { cn } from "@/lib/utils";
-import type { AudioDevice, GhosttypeSettings } from "@/types/ghosttype";
+import type {
+  AudioDevice,
+  DisplayInfo,
+  GhosttypeSettings,
+} from "@/types/ghosttype";
 import { AI_MODEL_OPTIONS } from "@/types/models";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PageLayout } from "./page-layout";
@@ -16,6 +20,7 @@ export function SettingsView() {
   const [shortcutCapture, setShortcutCapture] = useState(false);
   const [capturePreview, setCapturePreview] = useState("Press new shortcut...");
   const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([]);
+  const [displays, setDisplays] = useState<DisplayInfo[]>([]);
   const [defaultDeviceName, setDefaultDeviceName] = useState<string | null>(
     null,
   );
@@ -34,6 +39,10 @@ export function SettingsView() {
     window.ghosttype
       .getAudioDevices()
       .then(setAudioDevices)
+      .catch(() => undefined);
+    window.ghosttype
+      .getDisplays()
+      .then(setDisplays)
       .catch(() => undefined);
     window.ghosttype
       .getDefaultInputDevice()
@@ -61,6 +70,7 @@ export function SettingsView() {
     aiCleanup?: boolean;
     aiModel?: string;
     shareTranscripts?: boolean;
+    overlayDisplayId?: number | null;
   }) {
     if (!window.ghosttype) return;
     try {
@@ -304,6 +314,35 @@ export function SettingsView() {
             )}
           </div>
         </div>
+
+        {/* Overlay display */}
+        {displays.length > 1 && (
+          <div className="py-5">
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-ink">Overlay display</span>
+              <select
+                className="rounded-lg border border-border bg-sidebar px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 hover:cursor-pointer"
+                value={settings?.overlayDisplayId ?? ""}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  updateSettings({
+                    overlayDisplayId: value === "" ? null : Number(value),
+                  });
+                }}
+              >
+                <option value="">Primary display</option>
+                {displays.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-muted">
+                Choose which screen the overlay appears on.
+              </span>
+            </label>
+          </div>
+        )}
 
         {/* AI cleanup */}
         <div className="flex items-center justify-between py-5">

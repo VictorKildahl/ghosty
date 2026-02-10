@@ -34,6 +34,7 @@ export type GhosttypeSettings = {
   aiModel: string;
   shareTranscripts: boolean;
   stylePreferences: StylePreferences;
+  overlayDisplayId: number | null;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -44,6 +45,7 @@ export type GhosttypeSettingsUpdate = {
   aiModel?: string;
   shareTranscripts?: boolean;
   stylePreferences?: Partial<StylePreferences>;
+  overlayDisplayId?: number | null;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -66,6 +68,7 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
     email: "casual",
     other: "casual",
   },
+  overlayDisplayId: null,
 };
 
 const MODIFIER_CODES = new Set([
@@ -347,6 +350,11 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
     }
   }
 
+  const overlayDisplayId =
+    typeof record.overlayDisplayId === "number"
+      ? record.overlayDisplayId
+      : null;
+
   return {
     autoPaste,
     shortcut,
@@ -355,6 +363,7 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
     aiModel,
     shareTranscripts,
     stylePreferences,
+    overlayDisplayId,
   };
 }
 
@@ -398,6 +407,10 @@ export async function updateSettings(
       ...current.stylePreferences,
       ...patch.stylePreferences,
     },
+    overlayDisplayId:
+      patch.overlayDisplayId !== undefined
+        ? patch.overlayDisplayId
+        : current.overlayDisplayId,
   };
 
   await saveSettings(next);

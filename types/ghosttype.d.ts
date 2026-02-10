@@ -48,6 +48,7 @@ export type GhosttypeSettings = {
   aiModel: string;
   shareTranscripts: boolean;
   stylePreferences: StylePreferences;
+  overlayDisplayId: number | null;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -58,6 +59,7 @@ export type GhosttypeSettingsUpdate = {
   aiModel?: string;
   shareTranscripts?: boolean;
   stylePreferences?: Partial<StylePreferences>;
+  overlayDisplayId?: number | null;
 };
 
 export type SessionEvent = {
@@ -91,6 +93,14 @@ export type SnippetEntry = {
   createdAt: number;
 };
 
+export type DisplayInfo = {
+  id: number;
+  label: string;
+  width: number;
+  height: number;
+  isPrimary: boolean;
+};
+
 export type GhostTypeAPI = {
   getState: () => Promise<GhostingState>;
   startGhosting: () => Promise<void>;
@@ -101,6 +111,7 @@ export type GhostTypeAPI = {
   ) => Promise<GhosttypeSettings>;
   getAudioDevices: () => Promise<AudioDevice[]>;
   getDefaultInputDevice: () => Promise<string | null>;
+  getDisplays: () => Promise<DisplayInfo[]>;
   startMicTest: (microphone: string | null) => Promise<void>;
   stopMicTest: () => Promise<void>;
   onMicLevel: (callback: (level: number) => void) => () => void;

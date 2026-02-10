@@ -131,9 +131,19 @@ function createMainWindow() {
 const OVERLAY_WIDTH = 300;
 const OVERLAY_HEIGHT = 120;
 
+/** Resolve the display the overlay should live on, based on the user's setting. */
+function getOverlayDisplay() {
+  const displayId = settings?.overlayDisplayId ?? null;
+  if (displayId !== null) {
+    const match = screen.getAllDisplays().find((d) => d.id === displayId);
+    if (match) return match;
+  }
+  // Fallback: primary display
+  return screen.getPrimaryDisplay();
+}
+
 function createOverlayWindow() {
-  const cursorPoint = screen.getCursorScreenPoint();
-  const activeDisplay = screen.getDisplayNearestPoint(cursorPoint);
+  const activeDisplay = getOverlayDisplay();
   const { x, y, width, height } = activeDisplay.workArea;
 
   const win = new BrowserWindow({
@@ -146,7 +156,9 @@ function createOverlayWindow() {
     hasShadow: false,
     resizable: false,
     movable: false,
-    focusable: true,
+    focusable: false,
+    minimizable: false,
+    closable: false,
     skipTaskbar: true,
     show: false,
     type: "panel",
@@ -161,6 +173,10 @@ function createOverlayWindow() {
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.setIgnoreMouseEvents(true, { forward: true });
 
+  // Prevent the overlay from ever being minimized or closed
+  win.on("minimize", () => win.restore());
+  win.on("close", (e) => e.preventDefault());
+
   const overlayPath = resolveAppResourcePath("resources", "overlay.html");
   win.loadFile(overlayPath);
 
@@ -173,8 +189,7 @@ function createOverlayWindow() {
 
 function repositionOverlay() {
   if (!overlayWindow) return;
-  const cursorPoint = screen.getCursorScreenPoint();
-  const activeDisplay = screen.getDisplayNearestPoint(cursorPoint);
+  const activeDisplay = getOverlayDisplay();
   const { x, y, width, height } = activeDisplay.workArea;
   overlayWindow.setBounds({
     x: x + Math.round((width - OVERLAY_WIDTH) / 2),
@@ -308,6 +323,7 @@ function notifySettings(next: GhosttypeSettings) {
   mainWindow?.webContents.send("ghosting:settings", next);
   overlayWindow?.webContents.send("overlay:settings", next);
   rebuildTrayMenu();
+  repositionOverlay();
 }
 
 function notifyShortcutPreview(preview: string) {
@@ -345,6 +361,17 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle("ghosting:get-default-input-device", () =>
     getDefaultInputDeviceName(),
   );
+  ipcMain.handle("ghosting:get-displays", () => {
+    const displays = screen.getAllDisplays();
+    const primary = screen.getPrimaryDisplay();
+    return displays.map((d, i) => ({
+      id: d.id,
+      label: `Display ${i + 1}${d.id === primary.id ? " (Primary)" : ""} — ${d.size.width}×${d.size.height}`,
+      width: d.size.width,
+      height: d.size.height,
+      isPrimary: d.id === primary.id,
+    }));
+  });
   ipcMain.handle(
     "ghosting:start-mic-test",
     async (_event, microphone: string | null) => {

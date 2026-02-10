@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import type {
   AudioDevice,
   DictionaryEntry,
+  DisplayInfo,
   GhostingState,
   GhosttypeSettings,
   GhosttypeSettingsUpdate,
@@ -28,6 +29,8 @@ const api = {
     ipcRenderer.invoke("ghosting:get-default-input-device") as Promise<
       string | null
     >,
+  getDisplays: () =>
+    ipcRenderer.invoke("ghosting:get-displays") as Promise<DisplayInfo[]>,
   startMicTest: (microphone: string | null) =>
     ipcRenderer.invoke("ghosting:start-mic-test", microphone) as Promise<void>,
   stopMicTest: () =>
