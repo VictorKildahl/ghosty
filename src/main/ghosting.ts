@@ -167,11 +167,11 @@ export class GhostingController {
         const snippets = await loadSnippets();
 
         // Load vibe code context when in a code editor with vibe code enabled
-        const vibeCodeEnabled = this.getSettings().vibeCodeEnabled;
+        const autoFileDetection = this.getSettings().autoFileDetection;
         const isCodeApp = this.recordingAppCategory === "code";
         let vibeCodeFiles = undefined;
 
-        if (vibeCodeEnabled && isCodeApp) {
+        if (autoFileDetection && isCodeApp) {
           // Auto-detect the currently open file in the editor
           const { context: autoContext, workspaceFolder } =
             await detectActiveEditorContext();

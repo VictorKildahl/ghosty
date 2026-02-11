@@ -36,6 +36,7 @@ export type GhosttypeSettings = {
   stylePreferences: StylePreferences;
   overlayDisplayId: number | null;
   vibeCodeEnabled: boolean;
+  autoFileDetection: boolean;
   editorFileTagging: boolean;
 };
 
@@ -49,6 +50,7 @@ export type GhosttypeSettingsUpdate = {
   stylePreferences?: Partial<StylePreferences>;
   overlayDisplayId?: number | null;
   vibeCodeEnabled?: boolean;
+  autoFileDetection?: boolean;
   editorFileTagging?: boolean;
 };
 
@@ -75,6 +77,7 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
   },
   overlayDisplayId: null,
   vibeCodeEnabled: false,
+  autoFileDetection: false,
   editorFileTagging: false,
 };
 
@@ -373,6 +376,13 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? record.vibeCodeEnabled
       : DEFAULT_SETTINGS.vibeCodeEnabled;
 
+  const autoFileDetection =
+    typeof record.autoFileDetection === "boolean"
+      ? record.autoFileDetection
+      : typeof record.vibeCodeEnabled === "boolean"
+        ? record.vibeCodeEnabled
+        : DEFAULT_SETTINGS.autoFileDetection;
+
   const editorFileTagging =
     typeof record.editorFileTagging === "boolean"
       ? record.editorFileTagging
@@ -390,6 +400,7 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
     stylePreferences,
     overlayDisplayId,
     vibeCodeEnabled,
+    autoFileDetection,
     editorFileTagging,
   };
 }
@@ -439,6 +450,7 @@ export async function updateSettings(
         ? patch.overlayDisplayId
         : current.overlayDisplayId,
     vibeCodeEnabled: patch.vibeCodeEnabled ?? current.vibeCodeEnabled,
+    autoFileDetection: patch.autoFileDetection ?? current.autoFileDetection,
     editorFileTagging: patch.editorFileTagging ?? current.editorFileTagging,
   };
 

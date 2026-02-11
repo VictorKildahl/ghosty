@@ -57,6 +57,7 @@ export type GhosttypeSettings = {
   stylePreferences: StylePreferences;
   overlayDisplayId: number | null;
   vibeCodeEnabled: boolean;
+  autoFileDetection: boolean;
   editorFileTagging: boolean;
 };
 
@@ -70,6 +71,7 @@ export type GhosttypeSettingsUpdate = {
   stylePreferences?: Partial<StylePreferences>;
   overlayDisplayId?: number | null;
   vibeCodeEnabled?: boolean;
+  autoFileDetection?: boolean;
   editorFileTagging?: boolean;
 };
 

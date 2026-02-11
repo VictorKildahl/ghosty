@@ -34,7 +34,7 @@ export function StatsView({
     totalHours > 0 ? `${totalHours}h ${remainingMinutes}m` : `${totalMinutes}m`;
 
   return (
-    <PageLayout title="Stats" subtitle="Your ghosting activity at a glance.">
+    <PageLayout title="Stats">
       <div className="flex flex-col gap-6">
         {/* Stat cards */}
         <div className="grid grid-cols-2 gap-4">
