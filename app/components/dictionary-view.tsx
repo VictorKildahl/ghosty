@@ -1,7 +1,16 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { Book, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import {
+  Book,
+  Check,
+  Pencil,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -33,6 +42,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
   const addEntry = useMutation(api.dictionary.add);
   const updateEntry = useMutation(api.dictionary.update);
   const removeEntry = useMutation(api.dictionary.remove);
+  const acceptEntry = useMutation(api.dictionary.accept);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editState, setEditState] = useState<EditState | null>(null);
@@ -86,6 +96,13 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
       await removeEntry({ entryId });
     },
     [removeEntry],
+  );
+
+  const handleAccept = useCallback(
+    async (entryId: Id<"dictionaryEntries">) => {
+      await acceptEntry({ entryId });
+    },
+    [acceptEntry],
   );
 
   const filteredEntries = useMemo(() => {
@@ -230,7 +247,7 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
         <DataTable
           items={tableItems}
           renderContent={(item) => (
-            <span className="text-sm text-ink">
+            <span className="flex items-center gap-1.5 text-sm text-ink">
               {item.isCorrection && item.misspelling ? (
                 <>
                   {item.misspelling} <span className="text-muted">→</span>{" "}
@@ -239,10 +256,25 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
               ) : (
                 item.word
               )}
+              {item.autoAdded && (
+                <span
+                  title="GhostWriter auto-learned from your edits"
+                  className="inline-flex items-center gap-0.5 px-1.5  text-[10px] font-medium text-purple-600"
+                >
+                  <Sparkles className="h-3 w-3" />
+                </span>
+              )}
             </span>
           )}
           renderActions={(item) => (
             <>
+              {item.autoAdded && (
+                <RowActionButton
+                  icon={Check}
+                  label="Accept word"
+                  onClick={() => handleAccept(item._id)}
+                />
+              )}
               <RowActionButton
                 icon={Pencil}
                 label="Edit entry"

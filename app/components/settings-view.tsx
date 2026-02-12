@@ -81,6 +81,7 @@ export function SettingsView() {
     aiModel?: string;
     shareTranscripts?: boolean;
     overlayDisplayId?: number | null;
+    autoDictionary?: boolean;
   }) {
     if (!window.ghosttype) return;
     try {
@@ -275,6 +276,42 @@ export function SettingsView() {
               className={cn(
                 "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform",
                 settings?.aiCleanup ? "translate-x-5" : "translate-x-0.5",
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Auto-dictionary */}
+        <div className="flex items-center justify-between py-5">
+          <div>
+            <p className="text-sm font-medium text-ink">
+              Auto-learn corrections
+            </p>
+            <p className="mt-0.5 text-xs text-muted">
+              Automatically add words to the dictionary when you edit ghosted
+              text.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-pressed={settings?.autoDictionary ?? true}
+            className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition hover:cursor-pointer"
+            style={{
+              backgroundColor:
+                (settings?.autoDictionary ?? true) ? "#6944AE" : "#d4d4d4",
+            }}
+            onClick={() =>
+              updateSettings({
+                autoDictionary: !(settings?.autoDictionary ?? true),
+              })
+            }
+          >
+            <span
+              className={cn(
+                "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform",
+                (settings?.autoDictionary ?? true)
+                  ? "translate-x-5"
+                  : "translate-x-0.5",
               )}
             />
           </button>

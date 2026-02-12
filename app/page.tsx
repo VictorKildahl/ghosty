@@ -16,7 +16,7 @@ import { useAuth } from "@/app/use-auth";
 import { useGhostStats } from "@/app/use-ghost-stats";
 import { usePreferencesSync } from "@/app/use-preferences-sync";
 import type { StylePreferences } from "@/types/ghosttype";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type AuthView = "login" | "signup";
 
@@ -41,6 +41,13 @@ export default function Page() {
 
   // Keep Convex user record in sync with local preferences
   usePreferencesSync(auth?.userId ?? null);
+
+  // Send userId to the main process so it can write to Convex directly
+  // (used by the auto-dictionary feature).
+  useEffect(() => {
+    if (!window.ghosttype) return;
+    window.ghosttype.setUserId(auth?.userId ?? null);
+  }, [auth?.userId]);
 
   // Wrap signUp so we show consent prompt after a successful registration
   const handleSignUp = useCallback(

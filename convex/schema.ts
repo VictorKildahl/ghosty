@@ -34,6 +34,7 @@ export default defineSchema({
     word: v.string(),
     isCorrection: v.boolean(),
     misspelling: v.optional(v.string()),
+    autoAdded: v.optional(v.boolean()),
     createdAt: v.number(),
   }).index("by_userId", ["userId"]),
 

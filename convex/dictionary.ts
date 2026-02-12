@@ -21,13 +21,18 @@ export const add = mutation({
     word: v.string(),
     isCorrection: v.boolean(),
     misspelling: v.optional(v.string()),
+    autoAdded: v.optional(v.boolean()),
   },
-  handler: async (ctx, { userId, word, isCorrection, misspelling }) => {
+  handler: async (
+    ctx,
+    { userId, word, isCorrection, misspelling, autoAdded },
+  ) => {
     const id = await ctx.db.insert("dictionaryEntries", {
       userId,
       word,
       isCorrection,
       ...(isCorrection && misspelling ? { misspelling } : {}),
+      ...(autoAdded ? { autoAdded } : {}),
       createdAt: Date.now(),
     });
     return await ctx.db.get(id);
@@ -55,6 +60,14 @@ export const remove = mutation({
   args: { entryId: v.id("dictionaryEntries") },
   handler: async (ctx, { entryId }) => {
     await ctx.db.delete(entryId);
+  },
+});
+
+/** Accept an auto-learned entry, clearing its autoAdded badge. */
+export const accept = mutation({
+  args: { entryId: v.id("dictionaryEntries") },
+  handler: async (ctx, { entryId }) => {
+    await ctx.db.patch(entryId, { autoAdded: false });
   },
 });
 

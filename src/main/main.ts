@@ -10,6 +10,7 @@ import {
 } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { uIOhook } from "uiohook-napi";
 import { AI_MODEL_OPTIONS } from "../../types/models";
 import {
   getDefaultInputDeviceName,
@@ -17,6 +18,7 @@ import {
   startMicTest,
   type MicTestSession,
 } from "./audio";
+import { addAutoCorrectionToConvex, setUserId } from "./convexClient";
 import { getDeviceId } from "./deviceId";
 import {
   addDictionaryEntry,
@@ -25,6 +27,12 @@ import {
   syncDictionary,
   type DictionaryEntry,
 } from "./dictionaryStore";
+import {
+  cancelTracking as cancelEditTracking,
+  notifyKeystroke as editTrackerKeystroke,
+  setOnCorrectionsDetected,
+  startTracking as startEditTracking,
+} from "./editTracker";
 import { GhostingController } from "./ghosting";
 import { registerGhostingHotkey } from "./hotkey";
 import {
@@ -384,6 +392,11 @@ function notifyShortcutPreview(preview: string) {
 }
 
 function setupIpc(controller: GhostingController) {
+  // Auth — renderer sends userId so the main process can write to Convex
+  ipcMain.handle("auth:set-user-id", (_event, userId: string | null) => {
+    setUserId(userId);
+  });
+
   ipcMain.handle("ghosting:get-state", () => controller.getState());
   ipcMain.handle("ghosting:start", () => controller.startGhosting());
   ipcMain.handle("ghosting:stop", () => controller.stopGhosting());
@@ -640,7 +653,11 @@ app.whenReady().then(async () => {
       mainWindow?.webContents.send("ghosting:state", state);
       overlayWindow?.webContents.send("overlay:state", state);
       if (state.phase === "recording" || state.phase === "idle") {
-        if (state.phase === "recording") repositionOverlay();
+        if (state.phase === "recording") {
+          repositionOverlay();
+          // Cancel any pending edit tracking when a new recording starts
+          cancelEditTracking();
+        }
         // Idle & recording: mouse events enabled so CSS cursor works.
         // On macOS transparent pixels are naturally click-through.
         overlayWindow?.setIgnoreMouseEvents(false);
@@ -669,8 +686,46 @@ app.whenReady().then(async () => {
         ...session,
         timestamp: Date.now(),
       });
+
+      // Start edit tracking for auto-dictionary if enabled
+      const currentSettings = settings ?? getDefaultSettings();
+      if (currentSettings.autoDictionary && currentSettings.autoPaste) {
+        startEditTracking(session.cleanedText);
+      }
     },
   );
+
+  // Set up auto-dictionary correction notifications
+  // Buffer corrections so the renderer can pull them via IPC if needed.
+  const pendingCorrections: Array<{
+    original: string;
+    replacement: string;
+  }> = [];
+
+  ipcMain.handle("edit-tracker:flush-corrections", () => {
+    const batch = pendingCorrections.splice(0, pendingCorrections.length);
+    return batch;
+  });
+
+  setOnCorrectionsDetected((corrections) => {
+    console.log(
+      "[ghosttype] auto-dictionary corrections:",
+      corrections.map((c) => `"${c.original}" → "${c.replacement}"`),
+    );
+    // Persist each correction directly to Convex from the main process
+    for (const c of corrections) {
+      pendingCorrections.push(c);
+      addAutoCorrectionToConvex(c).then((ok) => {
+        if (ok) {
+          console.log(
+            `[ghosttype] synced correction "${c.original}" → "${c.replacement}" to Convex`,
+          );
+        }
+      });
+    }
+    // Notify renderer that corrections are available
+    mainWindow?.webContents.send("edit-tracker:corrections-available");
+  });
 
   setupIpc(controller);
 
@@ -694,6 +749,10 @@ app.whenReady().then(async () => {
       }
     },
   });
+
+  // Forward global keystrokes to editTracker so it can reset its idle timer.
+  // This MUST be added after registerGhostingHotkey (which calls uIOhook.start()).
+  uIOhook.on("keydown", () => editTrackerKeystroke());
 });
 
 app.on("activate", () => {

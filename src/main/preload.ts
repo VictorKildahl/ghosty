@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type {
   AudioDevice,
+  AutoCorrection,
   DictionaryEntry,
   DisplayInfo,
   GhostingState,
@@ -139,6 +140,26 @@ const api = {
       ipcRenderer.removeListener("ghosting:session-complete", listener);
     };
   },
+  flushAutoCorrections: () =>
+    ipcRenderer.invoke("edit-tracker:flush-corrections") as Promise<
+      AutoCorrection[]
+    >,
+  onAutoCorrections: (callback: () => void) => {
+    const listener = () => {
+      callback();
+    };
+
+    ipcRenderer.on("edit-tracker:corrections-available", listener);
+
+    return () => {
+      ipcRenderer.removeListener(
+        "edit-tracker:corrections-available",
+        listener,
+      );
+    };
+  },
+  setUserId: (userId: string | null) =>
+    ipcRenderer.invoke("auth:set-user-id", userId) as Promise<void>,
 };
 
 contextBridge.exposeInMainWorld("ghosttype", api);

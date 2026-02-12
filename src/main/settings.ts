@@ -39,6 +39,7 @@ export type GhosttypeSettings = {
   vibeCodeEnabled: boolean;
   autoFileDetection: boolean;
   editorFileTagging: boolean;
+  autoDictionary: boolean;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -54,6 +55,7 @@ export type GhosttypeSettingsUpdate = {
   vibeCodeEnabled?: boolean;
   autoFileDetection?: boolean;
   editorFileTagging?: boolean;
+  autoDictionary?: boolean;
 };
 
 const DEFAULT_SETTINGS: GhosttypeSettings = {
@@ -82,6 +84,7 @@ const DEFAULT_SETTINGS: GhosttypeSettings = {
   vibeCodeEnabled: false,
   autoFileDetection: false,
   editorFileTagging: false,
+  autoDictionary: true,
 };
 
 const MODIFIER_CODES = new Set([
@@ -407,6 +410,11 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
       ? (toggleShortcutRaw as GhostingShortcut)
       : null;
 
+  const autoDictionary =
+    typeof record.autoDictionary === "boolean"
+      ? record.autoDictionary
+      : DEFAULT_SETTINGS.autoDictionary;
+
   return {
     autoPaste,
     shortcut,
@@ -420,6 +428,7 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
     vibeCodeEnabled,
     autoFileDetection,
     editorFileTagging,
+    autoDictionary,
   };
 }
 
@@ -478,6 +487,7 @@ export async function updateSettings(
     vibeCodeEnabled: patch.vibeCodeEnabled ?? current.vibeCodeEnabled,
     autoFileDetection: patch.autoFileDetection ?? current.autoFileDetection,
     editorFileTagging: patch.editorFileTagging ?? current.editorFileTagging,
+    autoDictionary: patch.autoDictionary ?? current.autoDictionary,
   };
 
   await saveSettings(next);

@@ -60,6 +60,7 @@ export type GhosttypeSettings = {
   vibeCodeEnabled: boolean;
   autoFileDetection: boolean;
   editorFileTagging: boolean;
+  autoDictionary: boolean;
 };
 
 export type GhosttypeSettingsUpdate = {
@@ -75,6 +76,7 @@ export type GhosttypeSettingsUpdate = {
   vibeCodeEnabled?: boolean;
   autoFileDetection?: boolean;
   editorFileTagging?: boolean;
+  autoDictionary?: boolean;
 };
 
 export type TokenUsageInfo = {
@@ -115,6 +117,11 @@ export type SnippetEntry = {
   snippet: string;
   expansion: string;
   createdAt: number;
+};
+
+export type AutoCorrection = {
+  original: string;
+  replacement: string;
 };
 
 export type DisplayInfo = {
@@ -163,6 +170,9 @@ export type GhostTypeAPI = {
   onSettings: (callback: (settings: GhosttypeSettings) => void) => () => void;
   onShortcutPreview: (callback: (preview: string) => void) => () => void;
   onSessionComplete: (callback: (session: SessionEvent) => void) => () => void;
+  flushAutoCorrections: () => Promise<AutoCorrection[]>;
+  onAutoCorrections: (callback: () => void) => () => void;
+  setUserId: (userId: string | null) => Promise<void>;
 };
 
 declare global {
