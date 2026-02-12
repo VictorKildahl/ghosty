@@ -264,9 +264,6 @@ export class GhostingController {
       // language or recording duration.
       const hasSpeech = await wavContainsSpeech(session.filePath);
       if (!hasSpeech) {
-        console.log(
-          "[ghosttype] no sustained speech energy detected, skipping transcription",
-        );
         this.setState({ phase: "idle", lastRawText: "", lastGhostedText: "" });
         return;
       }
@@ -286,13 +283,6 @@ export class GhostingController {
       // recording contained any real speech.
       const speechOnly = stripNoiseMarkers(rawText ?? "");
       if (!speechOnly || isLikelyHallucination(speechOnly, durationMs)) {
-        console.log(
-          "[ghosttype] no real speech detected (raw:",
-          JSON.stringify(rawText),
-          ", duration:",
-          durationMs,
-          "ms), skipping",
-        );
         this.setState({ phase: "idle", lastRawText: "", lastGhostedText: "" });
         return;
       }
@@ -309,12 +299,7 @@ export class GhostingController {
       // even ones already in auto-detected context — because we want to
       // create @-mention tags for them in the output.
       const mentionedFileNames = extractFileReferences(rawText);
-      console.log(
-        "[ghosttype] file refs from speech →",
-        mentionedFileNames,
-        "| bundleId →",
-        this.recordingBundleId,
-      );
+      console.log("[ghosttype] BundleId →", this.recordingBundleId);
 
       if (aiCleanup) {
         const dictionary = await loadDictionary();
@@ -366,7 +351,6 @@ export class GhostingController {
         finalText = cleanupResult.text;
         tokenUsage = cleanupResult.tokenUsage;
       } else {
-        console.log("[ghosttype] ai cleanup skipped");
         finalText = rawText;
       }
 
@@ -374,9 +358,6 @@ export class GhostingController {
       // hallucination after AI cleanup, there's nothing real to paste.
       const cleanedSpeech = stripNoiseMarkers(finalText);
       if (!cleanedSpeech || isLikelyHallucination(cleanedSpeech, durationMs)) {
-        console.log(
-          "[ghosttype] cleaned text is empty/hallucination, skipping paste",
-        );
         this.setState({
           phase: "idle",
           lastRawText: rawText,
@@ -395,12 +376,6 @@ export class GhostingController {
       if (editorFileTagging) {
         const outputFileRefs = extractFileReferences(finalText);
         allFileRefs = [...new Set([...mentionedFileNames, ...outputFileRefs])];
-        if (allFileRefs.length !== mentionedFileNames.length) {
-          console.log(
-            "[ghosttype] additional refs from AI output →",
-            outputFileRefs,
-          );
-        }
       }
 
       await applyGhostedText(finalText, {
@@ -446,7 +421,6 @@ export class GhostingController {
       await fs.rm(session.filePath, { force: true });
     }
 
-    console.log("[ghosttype] recording cancelled");
     this.setState({ phase: "idle", error: null });
   }
 }

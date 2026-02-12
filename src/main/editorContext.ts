@@ -404,8 +404,6 @@ export async function resolveSpokenFileReferences(
   const refs = extractFileReferences(rawText);
   if (refs.length === 0) return [];
 
-  console.log("[vibecode] spoken file refs →", refs);
-
   const results: VibeCodeContext[] = [];
   const seen = new Set<string>(excludePaths ?? []);
 
@@ -424,8 +422,6 @@ export async function resolveSpokenFileReferences(
       label: `${path.basename(filePath)} (mentioned)`,
       content,
     });
-
-    console.log("[vibecode] resolved spoken ref →", filePath);
   }
 
   return results;
@@ -457,14 +453,14 @@ export async function detectActiveEditorContext(): Promise<EditorDetectionResult
   const windowTitle = getFrontmostWindowTitle();
   if (!windowTitle) return empty;
 
-  console.log("[vibecode] window title →", windowTitle);
-
   // Parse title based on editor type
   const parsed = isJetBrainsBundleId(bundleId)
     ? parseJetBrainsTitle(windowTitle)
     : parseVSCodeTitle(windowTitle);
 
-  console.log("[vibecode] parsed →", parsed);
+  if (parsed.fileName) {
+    console.log("[ghosttype] File name →", JSON.stringify(parsed.fileName));
+  }
 
   if (!parsed.fileName || !parsed.workspaceName) return empty;
 
@@ -475,11 +471,8 @@ export async function detectActiveEditorContext(): Promise<EditorDetectionResult
   );
 
   if (!workspaceFolder) {
-    console.log("[vibecode] workspace folder not resolved");
     return empty;
   }
-
-  console.log("[vibecode] workspace →", workspaceFolder);
 
   // Find the file — if it has an extension, search directly.
   // If it doesn't (VS Code often strips extensions in tab titles),
@@ -543,11 +536,8 @@ export async function detectActiveEditorContext(): Promise<EditorDetectionResult
   }
 
   if (!filePath) {
-    console.log("[vibecode] file not found in workspace");
     return { context: [], workspaceFolder };
   }
-
-  console.log("[vibecode] active file →", filePath);
 
   // Read contents
   const content = await readFileTruncated(filePath);

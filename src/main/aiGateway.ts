@@ -311,20 +311,14 @@ export async function cleanupGhostedText(
     throw new Error("AI_GATEWAY_API_KEY is required for ghosted text cleanup.");
   }
 
-  console.log("[ghosttype] raw transcription →", text);
-  if (vibeCodeFiles?.length) {
-    console.log(
-      "[ghosttype] vibe code context →",
-      vibeCodeFiles.map((f) => f.label).join(", "),
-    );
-  }
+  console.log("[ghosttype] Raw transcription →", text);
 
   const gateway = createGateway({
     apiKey,
   });
 
   const selectedModel = model || DEFAULT_AI_MODEL;
-  console.log("[ghosttype] using model →", selectedModel);
+  console.log("[ghosttype] AI model →", selectedModel);
 
   const t0 = performance.now();
   const result = await generateText({
@@ -349,10 +343,10 @@ export async function cleanupGhostedText(
   const safeOutput = outputTokens ?? 0;
   const cost = estimateCost(selectedModel, safeInput, safeOutput);
   console.log(
-    `[ghosttype] 💸 token usage       → prompt: ${safeInput}, completion: ${safeOutput}, total: ${safeInput + safeOutput}, est. cost: $${cost.toFixed(6)}`,
+    `[ghosttype] Token usage → Prompt: ${safeInput}, Completion: ${safeOutput}, Total: ${safeInput + safeOutput}, Est. cost: $${cost.toFixed(6)}`,
   );
   console.log(
-    "[ghosttype] ai cleanup       →",
+    "[ghosttype] AI output →",
     cleaned ?? "(empty)",
     `(${elapsed}ms)`,
   );

@@ -91,12 +91,7 @@ async function doStart(): Promise<void> {
     );
   }
 
-  console.log(
-    "[whisper] starting server bin=%s model=%s port=%d",
-    resolvedServerBin,
-    resolvedModelPath,
-    SERVER_PORT,
-  );
+  // Server startup details logged at debug level only
 
   const env = { ...process.env };
   if (resolvedLibDir && fs.existsSync(resolvedLibDir)) {
@@ -128,26 +123,44 @@ async function doStart(): Promise<void> {
   );
   serverProc = proc;
 
-  proc.stdout?.on("data", (chunk: Buffer) => {
-    console.log("[whisper-server]", chunk.toString().trimEnd());
-  });
-  proc.stderr?.on("data", (chunk: Buffer) => {
-    console.log("[whisper-server]", chunk.toString().trimEnd());
-  });
+  // Only surface the auto-detected language line from whisper-server;
+  // suppress all other verbose model-loading / Metal / timing output.
+  const forwardIfRelevant = (chunk: Buffer) => {
+    for (const line of chunk.toString().split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      if (trimmed.includes("auto-detected language")) {
+        // Extract language and probability from whisper output
+        // e.g. "whisper_full_with_state: auto-detected language: en (p = 0.999541)"
+        const match = trimmed.match(
+          /auto-detected language:\s*(\w+)\s*\(p\s*=\s*([\d.]+)\)/,
+        );
+        if (match) {
+          const lang = match[1];
+          const confidence = (parseFloat(match[2]) * 100)
+            .toFixed(2)
+            .replace(".", ",");
+          console.log(
+            `[whisper] Language auto detected → ${lang} (Confidence ${confidence}%)`,
+          );
+        }
+      }
+    }
+  };
+  proc.stdout?.on("data", forwardIfRelevant);
+  proc.stderr?.on("data", forwardIfRelevant);
 
   proc.on("error", (err) => {
     console.error("[whisper] server spawn error:", err.message);
   });
 
-  proc.once("exit", (code, signal) => {
-    console.log("[whisper] server exited code=%s signal=%s", code, signal);
+  proc.once("exit", (_code, _signal) => {
     serverReady = false;
     serverProc = null;
   });
 
   await waitForServer();
   serverReady = true;
-  console.log("[whisper] server ready on port %d", SERVER_PORT);
 }
 
 function waitForServer(): Promise<void> {
@@ -184,7 +197,6 @@ function waitForServer(): Promise<void> {
 /** Gracefully stop the whisper-server process. */
 export function stopWhisperServer(): void {
   if (!serverProc) return;
-  console.log("[whisper] stopping server");
   const proc = serverProc;
   serverReady = false;
   serverProc = null;
@@ -282,6 +294,6 @@ export async function transcribeWithWhisper(
     req.end();
   });
 
-  console.log("[whisper] transcribed in %dms lang=%s", Date.now() - t0, lang);
+  console.log("[whisper] Transcribed in → %dms", Date.now() - t0);
   return result.replace(/\s+/g, " ").trim();
 }

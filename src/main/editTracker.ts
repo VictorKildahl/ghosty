@@ -613,25 +613,15 @@ export function startTracking(pastedText: string) {
     .then((pos) => {
       if (pos !== null) {
         pasteCharOffset = Math.max(0, pos - pastedText.length);
-        console.log(
-          `[editTracker] paste offset recorded: ${pasteCharOffset} (cursor at ${pos}, paste length ${pastedText.length})`,
-        );
-      } else {
-        console.log("[editTracker] could not determine paste offset");
       }
     })
     .catch(() => {});
-
-  console.log(
-    `[editTracker] tracking started, will check after ${IDLE_TIMEOUT_MS / 1000}s of inactivity (max ${MAX_WAIT_MS / 1000}s)`,
-  );
 
   // Start idle timer — if no keystrokes at all, fires after IDLE_TIMEOUT_MS
   resetIdleTimer();
 
   // Hard cap: force a check after MAX_WAIT_MS no matter what
   maxTimer = setTimeout(() => {
-    console.log("[editTracker] max wait reached, checking now");
     teardownTracking();
     void checkForCorrections();
   }, MAX_WAIT_MS);
@@ -674,14 +664,10 @@ async function readPastedRegion(
         String(windowLen),
       );
       if (text && text.trim() !== "") {
-        console.log("[editTracker] read pasted region via AX range");
         return text;
       }
-    } catch (err) {
-      console.log(
-        "[editTracker] AX range read failed:",
-        (err as Error).message,
-      );
+    } catch {
+      // AX range read not available, fall through to full value read
     }
   }
 
@@ -689,17 +675,15 @@ async function readPastedRegion(
   try {
     const fullText = await runAxReader("value");
     if (fullText && fullText.trim() !== "") {
-      console.log("[editTracker] read full text via AX value");
       if (offset !== null) {
         return fullText.substring(offset, offset + windowLen);
       }
       return fullText;
     }
-  } catch (err) {
-    console.log("[editTracker] AX value read failed:", (err as Error).message);
+  } catch {
+    // AX value read not available
   }
 
-  console.error("[editTracker] could not read text from active app");
   return null;
 }
 
@@ -711,11 +695,8 @@ async function checkForCorrections() {
   lastPastedText = null;
   pasteCharOffset = null;
 
-  console.log("[editTracker] checking for user corrections...");
-
   const region = await readPastedRegion(offset, originalPaste.length);
   if (!region) {
-    console.log("[editTracker] could not read text from active app, skipping");
     return;
   }
 
@@ -727,7 +708,6 @@ async function checkForCorrections() {
     // Quick sanity check: if the normalised text is identical the user
     // didn't change anything.
     if (normalise(region) === normalise(originalPaste)) {
-      console.log("[editTracker] pasted region unchanged");
       return;
     }
 
@@ -745,9 +725,6 @@ async function checkForCorrections() {
     }
     const overlapRatio = origWords.length > 0 ? overlap / origWords.length : 0;
     if (overlapRatio < 0.5) {
-      console.log(
-        `[editTracker] read text is too different from original paste (${Math.round(overlapRatio * 100)}% word overlap), focus likely shifted — skipping`,
-      );
       return;
     }
 
@@ -757,7 +734,6 @@ async function checkForCorrections() {
   }
 
   if (!editedRegion) {
-    console.log("[editTracker] no edited region found or text unchanged");
     return;
   }
 
@@ -768,7 +744,6 @@ async function checkForCorrections() {
   const corrections = wordDiff(originalWords, editedWords);
 
   if (corrections.length === 0) {
-    console.log("[editTracker] no corrections detected");
     return;
   }
 
@@ -790,7 +765,6 @@ async function checkForCorrections() {
   );
 
   if (newCorrections.length === 0) {
-    console.log("[editTracker] all corrections already in dictionary");
     return;
   }
 

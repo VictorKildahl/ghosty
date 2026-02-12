@@ -99,10 +99,6 @@ async function pasteWithCursorFileTags(
   fileRefs: string[],
 ): Promise<void> {
   const segments = splitTextAroundFileRefs(text, fileRefs);
-  console.log(
-    "[ghosttype] Cursor @-mention segments →",
-    segments.map((s) => `[${s.type}] "${s.value}"`),
-  );
 
   // If no file references were found in the output, fall back to simple paste
   const hasFileSegment = segments.some((s) => s.type === "file");
@@ -159,10 +155,6 @@ async function pasteWithVSCodeFileTags(
   fileRefs: string[],
 ): Promise<void> {
   const segments = splitTextAroundFileRefs(text, fileRefs);
-  console.log(
-    "[ghosttype] VS Code #file segments →",
-    segments.map((s) => `[${s.type}] "${s.value}"`),
-  );
 
   const hasFileSegment = segments.some((s) => s.type === "file");
   if (!hasFileSegment) {
@@ -223,25 +215,17 @@ export async function applyGhostedText(
     FILE_TAGGING_BUNDLE_IDS.has(bundleId)
   ) {
     if (bundleId === CURSOR_BUNDLE_ID) {
-      console.log("[ghosttype] Cursor @-mention paste: refs →", fileReferences);
       await pasteWithCursorFileTags(text, fileReferences);
       return;
     }
 
     if (bundleId === VSCODE_BUNDLE_ID) {
-      console.log("[ghosttype] VS Code #file paste: refs →", fileReferences);
       await pasteWithVSCodeFileTags(text, fileReferences);
       return;
     }
   }
 
   // Default: simple clipboard paste
-  console.log(
-    "[ghosttype] simple paste (no file tags): refs →",
-    fileReferences ?? [],
-    "| bundleId →",
-    bundleId ?? "none",
-  );
   clipboard.writeText(text);
   await delay(40);
   await runAppleScript(
