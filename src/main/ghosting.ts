@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import { cleanupGhostedText, type TokenUsageInfo } from "./aiGateway";
 import {
-  detectAppCategory,
-  getFrontmostAppName,
+  categoryFromBundleId,
   getFrontmostBundleId,
+  nameFromBundleId,
   type AppCategory,
 } from "./appCategory";
 import {
@@ -96,10 +96,18 @@ export class GhostingController {
       const session = startRecording(selectedMic);
       this.recordingSession = session;
       this.recordingStartTime = Date.now();
-      this.recordingAppCategory = detectAppCategory();
-      this.recordingAppName = getFrontmostAppName();
-      this.recordingBundleId = getFrontmostBundleId();
+
+      // Show the recording overlay immediately so the user gets instant
+      // visual feedback.  The app-detection calls below use execSync +
+      // osascript which can take several hundred milliseconds each.
       this.setState({ phase: "recording", error: null });
+
+      // Detect the frontmost app *once* and derive category + name from
+      // the single result instead of spawning osascript three times.
+      const bundleId = getFrontmostBundleId();
+      this.recordingBundleId = bundleId;
+      this.recordingAppCategory = categoryFromBundleId(bundleId);
+      this.recordingAppName = nameFromBundleId(bundleId);
 
       session.process.once("error", (error) => {
         this.recordingSession = null;

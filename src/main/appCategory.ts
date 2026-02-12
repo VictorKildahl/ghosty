@@ -85,13 +85,20 @@ export function getFrontmostBundleId(): string | null {
 }
 
 /**
+ * Look up the app category for a known bundle identifier.
+ * Returns "other" when the bundle ID is null or unrecognised.
+ */
+export function categoryFromBundleId(bundleId: string | null): AppCategory {
+  if (!bundleId) return "other";
+  return BUNDLE_CATEGORY[bundleId] ?? "other";
+}
+
+/**
  * Categorise the current frontmost app into one of the four style
  * categories. Defaults to "other" for unrecognised apps.
  */
 export function detectAppCategory(): AppCategory {
-  const bundleId = getFrontmostBundleId();
-  if (!bundleId) return "other";
-  return BUNDLE_CATEGORY[bundleId] ?? "other";
+  return categoryFromBundleId(getFrontmostBundleId());
 }
 
 /**
@@ -177,11 +184,18 @@ function bundleIdToName(bundleId: string): string {
 }
 
 /**
+ * Look up the human-readable name for a known bundle identifier.
+ * Returns `"Unknown"` when the bundle ID is null.
+ */
+export function nameFromBundleId(bundleId: string | null): string {
+  if (!bundleId) return "Unknown";
+  return bundleIdToName(bundleId);
+}
+
+/**
  * Get a friendly name for the current frontmost macOS application.
  * Returns `"Unknown"` if detection fails.
  */
 export function getFrontmostAppName(): string {
-  const bundleId = getFrontmostBundleId();
-  if (!bundleId) return "Unknown";
-  return bundleIdToName(bundleId);
+  return nameFromBundleId(getFrontmostBundleId());
 }

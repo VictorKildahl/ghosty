@@ -111,13 +111,18 @@ type SystemProfilerResult = {
 };
 
 let cachedDefaultDevice: { name: string; ts: number } | null = null;
-const CACHE_TTL_MS = 10_000; // 10 s – re-query if stale
+const CACHE_TTL_MS = 300_000; // 5 min – audio devices rarely change mid-session
+
+/** Invalidate the cached default input device so the next call re-queries. */
+export function invalidateDefaultDeviceCache() {
+  cachedDefaultDevice = null;
+}
 
 /**
  * Ask macOS for the **actual** default audio input device name.
  *
  * Uses `system_profiler SPAudioDataType -json` which is available on every Mac
- * without extra tooling.  The result is cached for a few seconds so we don't
+ * without extra tooling.  The result is cached for several minutes so we don't
  * re-spawn on every hotkey press.  Falls back to `null` (which means `:0`)
  * if the query fails for any reason.
  */
@@ -192,11 +197,15 @@ export function startRecording(microphone?: string | null): RecordingSession {
     "16000",
     "-c:a",
     "pcm_s16le",
+    "-flush_packets",
+    "1",
     filePath,
   ];
 
   const childProcess = spawn(ffmpegBin, args, {
-    stdio: "ignore",
+    // Pipe stdin so we can send 'q' for a graceful shutdown that flushes
+    // all buffered audio instead of losing the last words.
+    stdio: ["pipe", "ignore", "ignore"],
   });
 
   return { filePath, process: childProcess };
@@ -204,8 +213,27 @@ export function startRecording(microphone?: string | null): RecordingSession {
 
 export async function stopRecording(session: RecordingSession): Promise<void> {
   if (session.process.killed || session.process.exitCode !== null) return;
-  session.process.kill("SIGINT");
-  await once(session.process, "exit");
+
+  const exitPromise = once(session.process, "exit");
+
+  // Send 'q' via stdin for a graceful shutdown – ffmpeg will finish encoding
+  // and flush all buffered audio before exiting (prevents cutting off the
+  // last words).  Fall back to SIGINT if it doesn't exit within 3 seconds.
+  if (session.process.stdin && !session.process.stdin.destroyed) {
+    session.process.stdin.write("q");
+    session.process.stdin.end();
+  } else {
+    session.process.kill("SIGINT");
+  }
+
+  const timeout = setTimeout(() => {
+    if (!session.process.killed && session.process.exitCode === null) {
+      session.process.kill("SIGINT");
+    }
+  }, 3000);
+
+  await exitPromise;
+  clearTimeout(timeout);
 }
 
 /* ------------------------------------------------------------------ */

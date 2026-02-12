@@ -14,6 +14,7 @@ import { uIOhook } from "uiohook-napi";
 import { AI_MODEL_OPTIONS } from "../../types/models";
 import {
   getDefaultInputDeviceName,
+  invalidateDefaultDeviceCache,
   listAudioDevices,
   startMicTest,
   type MicTestSession,
@@ -436,7 +437,12 @@ function setupIpc(controller: GhostingController) {
   ipcMain.handle("ghosting:stop-shortcut-capture", () => {
     capturingShortcutTarget = null;
   });
-  ipcMain.handle("ghosting:get-audio-devices", () => listAudioDevices());
+  ipcMain.handle("ghosting:get-audio-devices", () => {
+    // Invalidate the cached default device when the user browses devices
+    // (e.g. opened settings) so the next recording reflects any changes.
+    invalidateDefaultDeviceCache();
+    return listAudioDevices();
+  });
   ipcMain.handle("ghosting:get-default-input-device", () =>
     getDefaultInputDeviceName(),
   );
