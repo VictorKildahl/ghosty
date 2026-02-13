@@ -19,7 +19,7 @@ import { useAuth } from "@/app/use-auth";
 import { useGhostStats } from "@/app/use-ghost-stats";
 import { usePreferencesSync } from "@/app/use-preferences-sync";
 import { WelcomeView } from "@/app/welcome-view";
-import type { StylePreferences } from "@/types/ghosttype";
+import type { StylePreferences } from "@/types/ghostwriter";
 import { useCallback, useEffect, useState } from "react";
 
 type AuthView = "welcome" | "login" | "signup";
@@ -53,8 +53,8 @@ export default function Page() {
   // Send userId + admin flag to the main process so it can write to Convex
   // directly (used by the auto-dictionary feature) and show admin UI in tray.
   useEffect(() => {
-    if (!window.ghosttype) return;
-    window.ghosttype.setUserId(auth?.userId ?? null, isAdmin);
+    if (!window.ghostwriter) return;
+    window.ghostwriter.setUserId(auth?.userId ?? null, isAdmin);
   }, [auth?.userId, isAdmin]);
 
   // Wrap signUp so we show consent prompt after a successful registration
@@ -75,7 +75,7 @@ export default function Page() {
       overlayDisplayId: number | null,
     ) => {
       try {
-        await window.ghosttype?.updateSettings({
+        await window.ghostwriter?.updateSettings({
           shareTranscripts,
           stylePreferences,
           overlayDisplayId,

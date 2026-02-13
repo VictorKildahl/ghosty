@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata = {
   title: "GhostWriter",
   description:
-    "GhostWriter is an AI writing assistant that helps you write better messages, emails, and more.",
+    "GhostWriter — you talk, it writes. Voice-powered ghostwriting that turns speech into clean, ready-to-paste text.",
 };
 
 export default function RootLayout({

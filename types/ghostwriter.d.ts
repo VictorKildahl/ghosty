@@ -52,7 +52,7 @@ export type VibeCodeFile = {
   addedAt: number;
 };
 
-export type GhosttypeSettings = {
+export type GhostwriterSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut | null;
   toggleShortcut: GhostingShortcut | null;
@@ -74,7 +74,7 @@ export type GhosttypeSettings = {
   autoDictionary: boolean;
 };
 
-export type GhosttypeSettingsUpdate = {
+export type GhostwriterSettingsUpdate = {
   autoPaste?: boolean;
   shortcut?: GhostingShortcutInput | GhostingShortcut | null;
   toggleShortcut?: GhostingShortcutInput | GhostingShortcut | null;
@@ -149,14 +149,14 @@ export type DisplayInfo = {
   isPrimary: boolean;
 };
 
-export type GhostTypeAPI = {
+export type GhostwriterAPI = {
   getState: () => Promise<GhostingState>;
   startGhosting: () => Promise<void>;
   stopGhosting: () => Promise<void>;
-  getSettings: () => Promise<GhosttypeSettings>;
+  getSettings: () => Promise<GhostwriterSettings>;
   updateSettings: (
-    patch: GhosttypeSettingsUpdate,
-  ) => Promise<GhosttypeSettings>;
+    patch: GhostwriterSettingsUpdate,
+  ) => Promise<GhostwriterSettings>;
   getAudioDevices: () => Promise<AudioDevice[]>;
   getDefaultInputDevice: () => Promise<string | null>;
   getDisplays: () => Promise<DisplayInfo[]>;
@@ -165,7 +165,7 @@ export type GhostTypeAPI = {
   onMicLevel: (callback: (level: number) => void) => () => void;
   startShortcutCapture: (
     target?: "shortcut" | "toggleShortcut",
-  ) => Promise<GhosttypeSettings>;
+  ) => Promise<GhostwriterSettings>;
   stopShortcutCapture: () => Promise<void>;
   getDeviceId: () => Promise<string>;
   getLocalTranscripts: () => Promise<LocalTranscript[]>;
@@ -183,7 +183,7 @@ export type GhostTypeAPI = {
   removeVibeCodeFile: (id: string) => Promise<void>;
   pickVibeCodeFiles: () => Promise<VibeCodeFile[]>;
   onGhostingState: (callback: (state: GhostingState) => void) => () => void;
-  onSettings: (callback: (settings: GhosttypeSettings) => void) => () => void;
+  onSettings: (callback: (settings: GhostwriterSettings) => void) => () => void;
   onShortcutPreview: (callback: (preview: string) => void) => () => void;
   onSessionComplete: (callback: (session: SessionEvent) => void) => () => void;
   flushAutoCorrections: () => Promise<AutoCorrection[]>;
@@ -193,7 +193,7 @@ export type GhostTypeAPI = {
 
 declare global {
   interface Window {
-    ghosttype?: GhostTypeAPI;
+    ghostwriter?: GhostwriterAPI;
   }
 }
 

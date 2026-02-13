@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const DEVICE_ID_FILE = "ghosttype.device-id";
+const DEVICE_ID_FILE = "ghostwriter.device-id";
 
 function deviceIdPath() {
   return path.join(app.getPath("userData"), DEVICE_ID_FILE);

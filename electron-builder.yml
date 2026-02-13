@@ -37,7 +37,7 @@ extraResources:
       - "**/*"
 
 mac:
-  icon: public/assets/ghosttype.icns
+  icon: public/assets/ghostwriter.icns
   category: public.app-category.productivity
   target:
     - target: dmg

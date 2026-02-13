@@ -5,10 +5,10 @@ import { useEffect, useRef } from "react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import type {
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
   StylePreferences,
-} from "../types/ghosttype";
+} from "../types/ghostwriter";
 import type {
   SelectableTranscriptionLanguage,
   TranscriptionLanguage,
@@ -41,11 +41,11 @@ export function usePreferencesSync(userId: Id<"users"> | null) {
   // ── Hydrate local settings from cloud on first load ────────────────
   useEffect(() => {
     if (!userId || !cloudPrefs || hydratedRef.current) return;
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
 
     hydratedRef.current = true;
 
-    const patch: GhosttypeSettingsUpdate = {};
+    const patch: GhostwriterSettingsUpdate = {};
     if (typeof cloudPrefs.shareTranscripts === "boolean") {
       patch.shareTranscripts = cloudPrefs.shareTranscripts;
     }
@@ -62,15 +62,15 @@ export function usePreferencesSync(userId: Id<"users"> | null) {
     }
 
     if (Object.keys(patch).length === 0) return;
-    window.ghosttype.updateSettings(patch).catch(() => undefined);
+    window.ghostwriter.updateSettings(patch).catch(() => undefined);
   }, [userId, cloudPrefs]);
 
   // ── Push local → cloud whenever settings change ────────────────────
   useEffect(() => {
-    if (!userId || !window.ghosttype) return;
+    if (!userId || !window.ghostwriter) return;
 
-    const unsubscribe = window.ghosttype.onSettings(
-      (settings: GhosttypeSettings) => {
+    const unsubscribe = window.ghostwriter.onSettings(
+      (settings: GhostwriterSettings) => {
         updatePreferences({
           userId,
           shareTranscripts: settings.shareTranscripts,

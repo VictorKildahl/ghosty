@@ -47,8 +47,8 @@ import {
   loadSettings,
   updateSettings,
   type GhostingShortcut,
-  type GhosttypeSettings,
-  type GhosttypeSettingsUpdate,
+  type GhostwriterSettings,
+  type GhostwriterSettingsUpdate,
 } from "./settings";
 import { loadSnippets, syncSnippets, type SnippetEntry } from "./snippetStore";
 import {
@@ -98,7 +98,7 @@ let trayIcons: {
   idle: Electron.NativeImage;
   recording: Electron.NativeImage;
 } | null = null;
-let settings: GhosttypeSettings | null = null;
+let settings: GhostwriterSettings | null = null;
 let isAdmin = false;
 let capturingShortcutTarget: "shortcut" | "toggleShortcut" | null = null;
 let activeMicTest: MicTestSession | null = null;
@@ -307,7 +307,7 @@ function applyLoginItemSetting(openAtLogin: boolean) {
   app.setLoginItemSettings({ openAtLogin });
 }
 
-function applyAppVisibilitySettings(next: GhosttypeSettings) {
+function applyAppVisibilitySettings(next: GhostwriterSettings) {
   applyDockVisibility(next.showInDock);
   applyTrayVisibility(next.showInTray);
   applyLoginItemSetting(next.openAtLogin);
@@ -484,7 +484,7 @@ function rebuildTrayMenu() {
   tray.setContextMenu(menu);
 }
 
-function notifySettings(next: GhosttypeSettings) {
+function notifySettings(next: GhostwriterSettings) {
   mainWindow?.webContents.send("ghosting:settings", next);
   overlayWindow?.webContents.send("overlay:settings", next);
   rebuildTrayMenu();
@@ -526,7 +526,7 @@ function setupIpc(controller: GhostingController) {
   );
   ipcMain.handle(
     "ghosting:update-settings",
-    async (_event, patch: GhosttypeSettingsUpdate) => {
+    async (_event, patch: GhostwriterSettingsUpdate) => {
       if (!settings) {
         settings = await loadSettings();
       }
@@ -805,7 +805,7 @@ app.whenReady().then(async () => {
         cleanedText: session.cleanedText,
         wordCount: session.wordCount,
       }).catch((err) =>
-        console.error("[ghosttype] failed to save local transcript:", err),
+        console.error("[ghostwriter] failed to save local transcript:", err),
       );
 
       mainWindow?.webContents.send("ghosting:session-complete", {
@@ -839,7 +839,7 @@ app.whenReady().then(async () => {
 
   setOnCorrectionsDetected((corrections) => {
     console.log(
-      "[ghosttype] auto-dictionary corrections:",
+      "[ghostwriter] auto-dictionary corrections:",
       corrections.map((c) => `"${c.original}" → "${c.replacement}"`),
     );
     // Persist each correction directly to Convex from the main process
@@ -848,7 +848,7 @@ app.whenReady().then(async () => {
       addAutoCorrectionToConvex(c).then((ok) => {
         if (ok) {
           console.log(
-            `[ghosttype] synced correction "${c.original}" → "${c.replacement}" to Convex`,
+            `[ghostwriter] synced correction "${c.original}" → "${c.replacement}" to Convex`,
           );
         }
       });

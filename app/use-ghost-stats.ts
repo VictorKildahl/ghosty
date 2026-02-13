@@ -5,10 +5,10 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import type {
-  GhosttypeSettings,
+  GhostwriterSettings,
   LocalTranscript,
   SessionEvent,
-} from "../types/ghosttype";
+} from "../types/ghostwriter";
 
 export function useGhostStats(userId: Id<"users"> | null) {
   const recordSession = useMutation(api.sessions.record);
@@ -24,19 +24,19 @@ export function useGhostStats(userId: Id<"users"> | null) {
 
   // Load local transcripts and track settings
   useEffect(() => {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
 
-    window.ghosttype
+    window.ghostwriter
       .getSettings()
-      .then((s: GhosttypeSettings) => setShareTranscripts(s.shareTranscripts))
+      .then((s: GhostwriterSettings) => setShareTranscripts(s.shareTranscripts))
       .catch(() => undefined);
 
-    window.ghosttype
+    window.ghostwriter
       .getLocalTranscripts()
       .then(setLocalTranscripts)
       .catch(() => undefined);
 
-    const unsubscribe = window.ghosttype.onSettings((s: GhosttypeSettings) => {
+    const unsubscribe = window.ghostwriter.onSettings((s: GhostwriterSettings) => {
       setShareTranscripts(s.shareTranscripts);
     });
 
@@ -71,7 +71,7 @@ export function useGhostStats(userId: Id<"users"> | null) {
       }
 
       // Refresh local transcripts after a new session
-      window.ghosttype
+      window.ghostwriter
         ?.getLocalTranscripts()
         .then(setLocalTranscripts)
         .catch(() => undefined);
@@ -81,8 +81,8 @@ export function useGhostStats(userId: Id<"users"> | null) {
 
   // Listen for session complete events from main process
   useEffect(() => {
-    if (!window.ghosttype || !userId) return;
-    const unsubscribe = window.ghosttype.onSessionComplete((session) => {
+    if (!window.ghostwriter || !userId) return;
+    const unsubscribe = window.ghostwriter.onSessionComplete((session) => {
       trackSession(session).catch(console.error);
     });
     return unsubscribe;
@@ -92,7 +92,7 @@ export function useGhostStats(userId: Id<"users"> | null) {
   const deleteTranscript = useCallback(
     async (timestamp: number) => {
       // Always delete from local file
-      await window.ghosttype?.deleteLocalTranscript(timestamp);
+      await window.ghostwriter?.deleteLocalTranscript(timestamp);
 
       // Also delete from Convex if user is logged in
       if (userId) {
@@ -100,7 +100,7 @@ export function useGhostStats(userId: Id<"users"> | null) {
       }
 
       // Refresh local transcripts
-      window.ghosttype
+      window.ghostwriter
         ?.getLocalTranscripts()
         .then(setLocalTranscripts)
         .catch(() => undefined);

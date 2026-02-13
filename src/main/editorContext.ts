@@ -117,7 +117,7 @@ type ParsedTitle = {
  * VS Code / Cursor / Windsurf title format:
  *   `● filename.ext — folder_name — VS Code`
  *   `filename.ext — folder_name — Cursor`
- *   `Page - app — ghosttype — Victor`  (tab label — workspace — profile)
+ *   `Page - app — ghostwriter — Victor`  (tab label — workspace — profile)
  *
  * The em-dash `—` (U+2014) is the separator VS Code uses between sections.
  * Regular hyphens ` - ` can appear *within* a section (e.g. tab label with
@@ -459,7 +459,7 @@ export async function detectActiveEditorContext(): Promise<EditorDetectionResult
     : parseVSCodeTitle(windowTitle);
 
   if (parsed.fileName) {
-    console.log("[ghosttype] File name →", JSON.stringify(parsed.fileName));
+    console.log("[ghostwriter] File name →", JSON.stringify(parsed.fileName));
   }
 
   if (!parsed.fileName || !parsed.workspaceName) return empty;

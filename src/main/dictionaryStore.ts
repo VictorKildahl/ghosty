@@ -12,7 +12,7 @@ export type DictionaryEntry = {
 };
 
 function storePath() {
-  return path.join(app.getPath("userData"), "ghosttype.dictionary.json");
+  return path.join(app.getPath("userData"), "ghostwriter.dictionary.json");
 }
 
 export async function loadDictionary(): Promise<DictionaryEntry[]> {

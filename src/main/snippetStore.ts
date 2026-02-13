@@ -10,7 +10,7 @@ export type SnippetEntry = {
 };
 
 function storePath() {
-  return path.join(app.getPath("userData"), "ghosttype.snippets.json");
+  return path.join(app.getPath("userData"), "ghostwriter.snippets.json");
 }
 
 export async function loadSnippets(): Promise<SnippetEntry[]> {

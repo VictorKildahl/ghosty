@@ -3,9 +3,9 @@
 import type { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import type {
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
-} from "@/types/ghosttype";
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
+} from "@/types/ghostwriter";
 import {
   CreditCard,
   Mic,
@@ -71,18 +71,18 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const [activeSection, setActiveSection] =
     useState<SettingsSection>(initialSection);
-  const [settings, setSettings] = useState<GhosttypeSettings | null>(null);
+  const [settings, setSettings] = useState<GhostwriterSettings | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
 
-    window.ghosttype
+    window.ghostwriter
       .getSettings()
       .then(setSettings)
       .catch(() => undefined);
 
-    const unsubscribeSettings = window.ghosttype.onSettings((next) => {
+    const unsubscribeSettings = window.ghostwriter.onSettings((next) => {
       setSettings(next);
     });
 
@@ -91,10 +91,10 @@ export function SettingsModal({
     };
   }, []);
 
-  async function updateSettings(patch: GhosttypeSettingsUpdate) {
-    if (!window.ghosttype) return;
+  async function updateSettings(patch: GhostwriterSettingsUpdate) {
+    if (!window.ghostwriter) return;
     try {
-      const next = await window.ghosttype.updateSettings(patch);
+      const next = await window.ghostwriter.updateSettings(patch);
       setSettings(next);
       setSettingsError(null);
     } catch (error) {

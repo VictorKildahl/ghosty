@@ -5,13 +5,13 @@ import type {
   DictionaryEntry,
   DisplayInfo,
   GhostingState,
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
   LocalTranscript,
   SessionEvent,
   SnippetEntry,
   VibeCodeFile,
-} from "../../types/ghosttype";
+} from "../../types/ghostwriter";
 
 const api = {
   getState: () =>
@@ -19,12 +19,12 @@ const api = {
   startGhosting: () => ipcRenderer.invoke("ghosting:start"),
   stopGhosting: () => ipcRenderer.invoke("ghosting:stop"),
   getSettings: () =>
-    ipcRenderer.invoke("ghosting:get-settings") as Promise<GhosttypeSettings>,
-  updateSettings: (patch: GhosttypeSettingsUpdate) =>
+    ipcRenderer.invoke("ghosting:get-settings") as Promise<GhostwriterSettings>,
+  updateSettings: (patch: GhostwriterSettingsUpdate) =>
     ipcRenderer.invoke(
       "ghosting:update-settings",
       patch,
-    ) as Promise<GhosttypeSettings>,
+    ) as Promise<GhostwriterSettings>,
   getAudioDevices: () =>
     ipcRenderer.invoke("ghosting:get-audio-devices") as Promise<AudioDevice[]>,
   getDefaultInputDevice: () =>
@@ -52,7 +52,7 @@ const api = {
     ipcRenderer.invoke(
       "ghosting:start-shortcut-capture",
       target,
-    ) as Promise<GhosttypeSettings>,
+    ) as Promise<GhostwriterSettings>,
   stopShortcutCapture: () =>
     ipcRenderer.invoke("ghosting:stop-shortcut-capture"),
   getDeviceId: () =>
@@ -100,10 +100,10 @@ const api = {
       ipcRenderer.removeListener("ghosting:state", listener);
     };
   },
-  onSettings: (callback: (settings: GhosttypeSettings) => void) => {
+  onSettings: (callback: (settings: GhostwriterSettings) => void) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      settings: GhosttypeSettings,
+      settings: GhostwriterSettings,
     ) => {
       callback(settings);
     };
@@ -161,4 +161,4 @@ const api = {
     ipcRenderer.invoke("auth:set-user-id", userId, isAdmin) as Promise<void>,
 };
 
-contextBridge.exposeInMainWorld("ghosttype", api);
+contextBridge.exposeInMainWorld("ghostwriter", api);

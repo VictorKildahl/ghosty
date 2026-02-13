@@ -2,9 +2,10 @@
 set -euo pipefail
 
 # ── Config ────────────────────────────────────────────────────────
-SERVER="/Users/vkp/Documents/Projects/ghosttype/resources/whisper/whisper-server"
-LIB_DIR="/Users/vkp/Documents/Projects/ghosttype/resources/whisper/lib"
-MODEL_DIR="/Users/vkp/Documents/Projects/ghosttype/resources/whisper/models"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SERVER="${REPO_ROOT}/resources/whisper/whisper-server"
+LIB_DIR="${REPO_ROOT}/resources/whisper/lib"
+MODEL_DIR="${REPO_ROOT}/resources/whisper/models"
 PORT=8179  # avoid clash with running app
 
 MODELS=(

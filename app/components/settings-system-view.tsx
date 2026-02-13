@@ -2,17 +2,17 @@
 
 import type {
   DisplayInfo,
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
-} from "@/types/ghosttype";
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
+} from "@/types/ghostwriter";
 import { useEffect, useState } from "react";
 import { ToggleRow } from "./settings-toggle-row";
 
 export type SettingsSystemViewProps = {
-  settings: GhosttypeSettings | null;
+  settings: GhostwriterSettings | null;
   settingsError: string | null;
   onSetSettingsError: (error: string | null) => void;
-  onUpdateSettings: (patch: GhosttypeSettingsUpdate) => void;
+  onUpdateSettings: (patch: GhostwriterSettingsUpdate) => void;
 };
 
 export function SettingsSystemView({
@@ -24,8 +24,8 @@ export function SettingsSystemView({
   const [displays, setDisplays] = useState<DisplayInfo[]>([]);
 
   useEffect(() => {
-    if (!window.ghosttype) return;
-    window.ghosttype
+    if (!window.ghostwriter) return;
+    window.ghostwriter
       .getDisplays()
       .then(setDisplays)
       .catch(() => undefined);

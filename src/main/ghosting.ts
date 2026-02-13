@@ -20,7 +20,7 @@ import {
   resolveSpokenFileReferences,
 } from "./editorContext";
 import { applyGhostedText } from "./paste";
-import type { GhosttypeSettings } from "./settings";
+import type { GhostwriterSettings } from "./settings";
 import { loadSnippets } from "./snippetStore";
 import { readVibeCodeFileContents } from "./vibeCodeStore";
 import { transcribeWithWhisper } from "./whisper";
@@ -165,7 +165,7 @@ export class GhostingController {
 
   constructor(
     private readonly onState: (state: GhostingState) => void,
-    private readonly getSettings: () => GhosttypeSettings,
+    private readonly getSettings: () => GhostwriterSettings,
     private readonly onSessionComplete?: (session: {
       wordCount: number;
       durationMs: number;
@@ -302,7 +302,7 @@ export class GhostingController {
       // even ones already in auto-detected context — because we want to
       // create @-mention tags for them in the output.
       const mentionedFileNames = extractFileReferences(rawText);
-      console.log("[ghosttype] BundleId →", this.recordingBundleId);
+      console.log("[ghostwriter] BundleId →", this.recordingBundleId);
 
       if (aiCleanup) {
         const dictionary = await loadDictionary();

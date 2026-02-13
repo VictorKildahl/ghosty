@@ -52,8 +52,8 @@ export function DictionaryView({ userId }: { userId: Id<"users"> }) {
 
   // Sync dictionary to local file so the AI main process can access it
   useEffect(() => {
-    if (!entries || !window.ghosttype) return;
-    window.ghosttype
+    if (!entries || !window.ghostwriter) return;
+    window.ghostwriter
       .syncDictionary(
         entries.map((e) => ({
           id: e._id,

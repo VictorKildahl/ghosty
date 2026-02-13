@@ -1,8 +1,8 @@
 {
-  "name": "ghosttype",
+  "name": "ghostwriter",
   "version": "0.1.0",
   "private": true,
-  "description": "GhostWriter background ghosting app",
+  "description": "GhostWriter — voice-powered ghostwriting app",
   "main": "dist/main.js",
   "scripts": {
     "dev": "concurrently -k \"next dev\" \"tsup --watch\" \"wait-on http://localhost:3000 && electronmon .\"",

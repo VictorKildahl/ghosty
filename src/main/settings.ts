@@ -3,8 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { UiohookKey } from "uiohook-napi";
 import {
-  DEFAULT_TRANSCRIPTION_LANGUAGES,
   DEFAULT_TRANSCRIPTION_LANGUAGE,
+  DEFAULT_TRANSCRIPTION_LANGUAGES,
   TRANSCRIPTION_LANGUAGES,
   normalizeTranscriptionLanguageSelection,
   toVisibleTranscriptionLanguageCode,
@@ -36,7 +36,7 @@ export type AppCategory = "personal" | "work" | "email" | "code" | "other";
 
 export type StylePreferences = Record<AppCategory, WritingStyle>;
 
-export type GhosttypeSettings = {
+export type GhostwriterSettings = {
   autoPaste: boolean;
   shortcut: GhostingShortcut | null;
   toggleShortcut: GhostingShortcut | null;
@@ -58,7 +58,7 @@ export type GhosttypeSettings = {
   autoDictionary: boolean;
 };
 
-export type GhosttypeSettingsUpdate = {
+export type GhostwriterSettingsUpdate = {
   autoPaste?: boolean;
   shortcut?: GhostingShortcutInput | GhostingShortcut | null;
   toggleShortcut?: GhostingShortcutInput | GhostingShortcut | null;
@@ -80,7 +80,7 @@ export type GhosttypeSettingsUpdate = {
   autoDictionary?: boolean;
 };
 
-const DEFAULT_SETTINGS: GhosttypeSettings = {
+const DEFAULT_SETTINGS: GhostwriterSettings = {
   autoPaste: true,
   shortcut: {
     key: "Space",
@@ -350,7 +350,7 @@ function normalizeLanguageSelection(
   return normalized.length > 0 ? normalized : [fallback];
 }
 
-function coerceSettings(raw: unknown): GhosttypeSettings {
+function coerceSettings(raw: unknown): GhostwriterSettings {
   if (!raw || typeof raw !== "object") return DEFAULT_SETTINGS;
   const record = raw as Record<string, unknown>;
 
@@ -399,7 +399,7 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
   const transcriptionLanguage =
     rawTranscriptionLanguage === "auto"
       ? "auto"
-      : transcriptionLanguages[0] ?? fallbackTranscriptionLanguage;
+      : (transcriptionLanguages[0] ?? fallbackTranscriptionLanguage);
 
   const soundEffectsEnabled =
     typeof record.soundEffectsEnabled === "boolean"
@@ -543,10 +543,10 @@ function coerceSettings(raw: unknown): GhosttypeSettings {
 }
 
 function settingsPath() {
-  return path.join(app.getPath("userData"), "ghosttype.settings.json");
+  return path.join(app.getPath("userData"), "ghostwriter.settings.json");
 }
 
-export async function loadSettings(): Promise<GhosttypeSettings> {
+export async function loadSettings(): Promise<GhostwriterSettings> {
   try {
     const data = await fs.readFile(settingsPath(), "utf8");
     return coerceSettings(JSON.parse(data));
@@ -555,15 +555,15 @@ export async function loadSettings(): Promise<GhosttypeSettings> {
   }
 }
 
-export async function saveSettings(settings: GhosttypeSettings) {
+export async function saveSettings(settings: GhostwriterSettings) {
   await fs.mkdir(path.dirname(settingsPath()), { recursive: true });
   await fs.writeFile(settingsPath(), JSON.stringify(settings, null, 2));
 }
 
 export async function updateSettings(
-  current: GhosttypeSettings,
-  patch: GhosttypeSettingsUpdate,
-): Promise<GhosttypeSettings> {
+  current: GhostwriterSettings,
+  patch: GhostwriterSettingsUpdate,
+): Promise<GhostwriterSettings> {
   const nextShowInTray = patch.showInTray ?? current.showInTray;
   const nextShowInDock = patch.showInDock ?? current.showInDock;
   if (!nextShowInTray && !nextShowInDock) {
@@ -580,7 +580,8 @@ export async function updateSettings(
       : normalizePrimaryLanguage(requestedTranscriptionLanguage);
   const fallbackSelectionLanguage =
     normalizedTranscriptionLanguage === "auto"
-      ? current.transcriptionLanguages[0] ?? DEFAULT_TRANSCRIPTION_LANGUAGES[0]
+      ? (current.transcriptionLanguages[0] ??
+        DEFAULT_TRANSCRIPTION_LANGUAGES[0])
       : normalizedTranscriptionLanguage;
   let nextTranscriptionLanguages = normalizeLanguageSelection(
     patch.transcriptionLanguages ?? current.transcriptionLanguages,
@@ -596,7 +597,7 @@ export async function updateSettings(
     );
   }
 
-  const next: GhosttypeSettings = {
+  const next: GhostwriterSettings = {
     autoPaste: patch.autoPaste ?? current.autoPaste,
     shortcut:
       patch.shortcut !== undefined
@@ -646,6 +647,6 @@ export async function updateSettings(
   return next;
 }
 
-export function getDefaultSettings(): GhosttypeSettings {
+export function getDefaultSettings(): GhostwriterSettings {
   return DEFAULT_SETTINGS;
 }

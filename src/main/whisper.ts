@@ -30,7 +30,7 @@ function resolvePaths() {
   if (resolvedServerBin) return;
 
   const base =
-    process.env.GHOSTTYPE_RESOURCES_PATH ??
+    process.env.GHOSTWRITER_RESOURCES_PATH ??
     (app.isPackaged ? process.resourcesPath : app.getAppPath());
 
   const candidates = [base, path.join(base, "resources")];
@@ -228,7 +228,7 @@ export async function transcribeWithWhisper(
   const lang = getWhisperLanguageCode(language) ?? "auto";
   const wavData = fs.readFileSync(wavPath);
 
-  const boundary = `----GhostType${Date.now()}`;
+  const boundary = `----GhostWriter${Date.now()}`;
   const parts: Buffer[] = [];
 
   function addField(name: string, value: string) {

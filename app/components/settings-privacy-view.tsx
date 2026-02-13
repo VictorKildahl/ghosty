@@ -3,17 +3,17 @@
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type {
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
-} from "@/types/ghosttype";
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
+} from "@/types/ghostwriter";
 import { useMutation } from "convex/react";
 import { useState } from "react";
 import { ToggleRow } from "./settings-toggle-row";
 
 export type SettingsPrivacyViewProps = {
-  settings: GhosttypeSettings | null;
+  settings: GhostwriterSettings | null;
   userId: Id<"users">;
-  onUpdateSettings: (patch: GhosttypeSettingsUpdate) => void;
+  onUpdateSettings: (patch: GhostwriterSettingsUpdate) => void;
 };
 
 export function SettingsPrivacyView({
@@ -35,9 +35,9 @@ export function SettingsPrivacyView({
     setReportStatus(null);
     try {
       let details = problemDetails.trim();
-      if (window.ghosttype) {
+      if (window.ghostwriter) {
         try {
-          const deviceId = await window.ghosttype.getDeviceId();
+          const deviceId = await window.ghostwriter.getDeviceId();
           if (deviceId) {
             details = `${details}\n\nDevice ID: ${deviceId}`.trim();
           }

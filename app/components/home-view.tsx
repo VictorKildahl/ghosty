@@ -8,9 +8,9 @@ import {
 } from "@/lib/ghost-helpers";
 import type {
   GhostingState,
-  GhosttypeSettings,
+  GhostwriterSettings,
   LocalTranscript,
-} from "@/types/ghosttype";
+} from "@/types/ghostwriter";
 import { Check, Copy, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DataTable, RowActionButton } from "./data-table";
@@ -39,7 +39,7 @@ export function HomeView({
     lastRawText: "",
     error: null,
   });
-  const [settings, setSettings] = useState<GhosttypeSettings | null>(null);
+  const [settings, setSettings] = useState<GhostwriterSettings | null>(null);
   const [ghostLog, setGhostLog] = useState<GhostLogEntry[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [copiedGroup, setCopiedGroup] = useState<string | null>(null);
@@ -63,19 +63,19 @@ export function HomeView({
   }, [localTranscripts]);
 
   useEffect(() => {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
 
-    window.ghosttype
+    window.ghostwriter
       .getState()
       .then(setState)
       .catch(() => undefined);
-    window.ghosttype
+    window.ghostwriter
       .getSettings()
       .then(setSettings)
       .catch(() => undefined);
 
-    const unsubscribeState = window.ghosttype.onGhostingState(setState);
-    const unsubscribeSettings = window.ghosttype.onSettings(setSettings);
+    const unsubscribeState = window.ghostwriter.onGhostingState(setState);
+    const unsubscribeSettings = window.ghostwriter.onSettings(setSettings);
 
     return () => {
       unsubscribeState();
@@ -213,7 +213,7 @@ export function HomeView({
           <>
             <h2 className="text-2xl leading-snug font-semibold text-ink">
               Hold{" "}
-              <span className="ghosttype-code text-2xl! text-ghosty">
+              <span className="ghostwriter-code text-2xl! text-ghosty">
                 {shortcutLabel}
               </span>{" "}
               to dictate and let
@@ -222,7 +222,7 @@ export function HomeView({
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               Press and hold{" "}
-              <span className="ghosttype-code font-medium text-ghosty">
+              <span className="ghostwriter-code font-medium text-ghosty">
                 {shortcutLabel}
               </span>{" "}
               to dictate in any app. GhostWriter&apos;s{" "}

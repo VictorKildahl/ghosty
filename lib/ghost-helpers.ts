@@ -1,4 +1,4 @@
-import type { GhostingShortcut } from "@/types/ghosttype";
+import type { GhostingShortcut } from "@/types/ghostwriter";
 
 export type GhostLogEntry = {
   timestamp: Date;

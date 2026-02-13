@@ -12,7 +12,7 @@ export type VibeCodeFile = {
 };
 
 function storePath() {
-  return path.join(app.getPath("userData"), "ghosttype.vibecode-files.json");
+  return path.join(app.getPath("userData"), "ghostwriter.vibecode-files.json");
 }
 
 export async function loadVibeCodeFiles(): Promise<VibeCodeFile[]> {

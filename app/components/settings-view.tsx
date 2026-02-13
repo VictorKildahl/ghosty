@@ -7,16 +7,22 @@ import { cn } from "@/lib/utils";
 import type {
   AudioDevice,
   DisplayInfo,
-  GhosttypeSettings,
-} from "@/types/ghosttype";
+  GhostwriterSettings,
+} from "@/types/ghostwriter";
 import {
   DEFAULT_TRANSCRIPTION_LANGUAGE,
   VISIBLE_TRANSCRIPTION_LANGUAGES,
   type TranscriptionLanguage,
 } from "@/types/languages";
-import { useMutation, useQuery } from "convex/react";
 import { AI_MODEL_OPTIONS, DEFAULT_AI_MODEL } from "@/types/models";
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useMutation, useQuery } from "convex/react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { PageLayout } from "./page-layout";
 
 type SettingsError = string | null;
@@ -32,7 +38,7 @@ export function SettingsView({
   userId,
   onAccountDeleted,
 }: SettingsViewProps) {
-  const [settings, setSettings] = useState<GhosttypeSettings | null>(null);
+  const [settings, setSettings] = useState<GhostwriterSettings | null>(null);
   const [settingsError, setSettingsError] = useState<SettingsError>(null);
   const [apiReady, setApiReady] = useState(false);
   const [shortcutCapture, setShortcutCapture] = useState(false);
@@ -65,40 +71,42 @@ export function SettingsView({
   const reportProblemMutation = useMutation(api.users.reportProblem);
 
   useEffect(() => {
-    if (!window.ghosttype) {
+    if (!window.ghostwriter) {
       setApiReady(false);
       return;
     }
     setApiReady(true);
 
-    window.ghosttype
+    window.ghostwriter
       .getSettings()
       .then(setSettings)
       .catch(() => undefined);
-    window.ghosttype
+    window.ghostwriter
       .getAudioDevices()
       .then(setAudioDevices)
       .catch(() => undefined);
-    window.ghosttype
+    window.ghostwriter
       .getDisplays()
       .then(setDisplays)
       .catch(() => undefined);
-    window.ghosttype
+    window.ghostwriter
       .getDefaultInputDevice()
       .then(setDefaultDeviceName)
       .catch(() => undefined);
 
-    const unsubscribeSettings = window.ghosttype.onSettings((next) => {
+    const unsubscribeSettings = window.ghostwriter.onSettings((next) => {
       setSettings(next);
       setShortcutCapture(false);
       setCapturePreview("Press new shortcut...");
       setToggleShortcutCapture(false);
       setToggleCapturePreview("Press new shortcut...");
     });
-    const unsubscribePreview = window.ghosttype.onShortcutPreview((preview) => {
-      setCapturePreview(preview);
-      setToggleCapturePreview(preview);
-    });
+    const unsubscribePreview = window.ghostwriter.onShortcutPreview(
+      (preview) => {
+        setCapturePreview(preview);
+        setToggleCapturePreview(preview);
+      },
+    );
 
     return () => {
       unsubscribeSettings();
@@ -128,9 +136,9 @@ export function SettingsView({
     autoDictionary?: boolean;
     shortcut?: null;
   }) {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      const next = await window.ghosttype.updateSettings(patch);
+      const next = await window.ghostwriter.updateSettings(patch);
       setSettings(next);
       setSettingsError(null);
     } catch (error) {
@@ -156,9 +164,7 @@ export function SettingsView({
     });
   }
 
-  async function onProfileImageSelected(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
+  async function onProfileImageSelected(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
@@ -207,7 +213,7 @@ export function SettingsView({
     );
     if (!confirmed) return;
 
-    const phrase = window.prompt('Type DELETE to confirm account deletion.');
+    const phrase = window.prompt("Type DELETE to confirm account deletion.");
     if (phrase !== "DELETE") {
       setProfileError("Account deletion cancelled.");
       return;
@@ -233,9 +239,9 @@ export function SettingsView({
 
     try {
       let details = problemDetails.trim();
-      if (window.ghosttype) {
+      if (window.ghostwriter) {
         try {
-          const deviceId = await window.ghosttype.getDeviceId();
+          const deviceId = await window.ghostwriter.getDeviceId();
           if (deviceId) {
             details = `${details}\n\nDevice ID: ${deviceId}`.trim();
           }
@@ -297,9 +303,9 @@ export function SettingsView({
   }
 
   async function beginShortcutCapture() {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      await window.ghosttype.startShortcutCapture("shortcut");
+      await window.ghostwriter.startShortcutCapture("shortcut");
       setShortcutCapture(true);
       setCapturePreview("Press new shortcut...");
       setSettingsError(null);
@@ -313,16 +319,16 @@ export function SettingsView({
   }
 
   async function endShortcutCapture() {
-    if (!window.ghosttype) return;
-    await window.ghosttype.stopShortcutCapture();
+    if (!window.ghostwriter) return;
+    await window.ghostwriter.stopShortcutCapture();
     setShortcutCapture(false);
     setCapturePreview("Press new shortcut...");
   }
 
   async function beginToggleShortcutCapture() {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      await window.ghosttype.startShortcutCapture("toggleShortcut");
+      await window.ghostwriter.startShortcutCapture("toggleShortcut");
       setToggleShortcutCapture(true);
       setToggleCapturePreview("Press new shortcut...");
       setSettingsError(null);
@@ -336,16 +342,16 @@ export function SettingsView({
   }
 
   async function endToggleShortcutCapture() {
-    if (!window.ghosttype) return;
-    await window.ghosttype.stopShortcutCapture();
+    if (!window.ghostwriter) return;
+    await window.ghostwriter.stopShortcutCapture();
     setToggleShortcutCapture(false);
     setToggleCapturePreview("Press new shortcut...");
   }
 
   async function clearToggleShortcut() {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      const next = await window.ghosttype.updateSettings({
+      const next = await window.ghostwriter.updateSettings({
         toggleShortcut: null,
       });
       setSettings(next);
@@ -358,9 +364,9 @@ export function SettingsView({
   }
 
   async function clearShortcut() {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      const next = await window.ghosttype.updateSettings({
+      const next = await window.ghostwriter.updateSettings({
         shortcut: null,
       });
       setSettings(next);
@@ -390,10 +396,10 @@ export function SettingsView({
   }, []);
 
   async function startMicTest() {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     // Use whichever mic is currently shown in the dropdown (may differ from saved setting).
     const mic = settings?.selectedMicrophone ?? null;
-    await window.ghosttype.startMicTest(mic);
+    await window.ghostwriter.startMicTest(mic);
     setMicTesting(true);
     rawLevel.current = 0;
     smoothedLevel.current = 0;
@@ -401,8 +407,8 @@ export function SettingsView({
   }
 
   async function stopMicTest() {
-    if (!window.ghosttype) return;
-    await window.ghosttype.stopMicTest();
+    if (!window.ghostwriter) return;
+    await window.ghostwriter.stopMicTest();
     setMicTesting(false);
     rawLevel.current = 0;
     if (rafId.current !== null) {
@@ -414,8 +420,8 @@ export function SettingsView({
 
   // Subscribe to mic-level events from main process.
   useEffect(() => {
-    if (!window.ghosttype) return;
-    const unsub = window.ghosttype.onMicLevel((level) => {
+    if (!window.ghostwriter) return;
+    const unsub = window.ghostwriter.onMicLevel((level) => {
       rawLevel.current = level;
     });
     return () => {
@@ -430,7 +436,7 @@ export function SettingsView({
   // Ensure mic test is stopped when component unmounts.
   useEffect(() => {
     return () => {
-      window.ghosttype?.stopMicTest().catch(() => undefined);
+      window.ghostwriter?.stopMicTest().catch(() => undefined);
     };
   }, []);
 
@@ -792,7 +798,7 @@ export function SettingsView({
             <span className="font-medium text-ink">Hold-to-ghost shortcut</span>
             <div className="flex items-center gap-2">
               <input
-                className="ghosttype-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="ghostwriter-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
                 style={
                   shortcutCapture
                     ? {
@@ -843,7 +849,7 @@ export function SettingsView({
             </span>
             <div className="flex items-center gap-2">
               <input
-                className="ghosttype-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                className="ghostwriter-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
                 style={
                   toggleShortcutCapture
                     ? {
@@ -893,7 +899,8 @@ export function SettingsView({
             <select
               className="rounded-lg border border-border bg-sidebar px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/40 hover:cursor-pointer"
               value={
-                settings?.transcriptionLanguage ?? DEFAULT_TRANSCRIPTION_LANGUAGE
+                settings?.transcriptionLanguage ??
+                DEFAULT_TRANSCRIPTION_LANGUAGE
               }
               onChange={(event) =>
                 updateSettings({
@@ -1076,7 +1083,9 @@ export function SettingsView({
               {reportSubmitting ? "Submitting..." : "Send report"}
             </button>
 
-            {reportStatus && <p className="text-xs text-accent">{reportStatus}</p>}
+            {reportStatus && (
+              <p className="text-xs text-accent">{reportStatus}</p>
+            )}
             {reportError && <p className="text-xs text-ember">{reportError}</p>}
           </div>
         </div>

@@ -15,7 +15,7 @@ type AuthState = {
   isAdmin?: boolean;
 };
 
-const STORAGE_KEY = "ghosttype:auth";
+const STORAGE_KEY = "ghostwriter:auth";
 
 function loadAuthFromStorage(): AuthState | null {
   try {
@@ -97,9 +97,9 @@ export function useAuth() {
   }, [auth, validated, loading]);
 
   const getDeviceId = useCallback(async () => {
-    if (!window.ghosttype) return undefined;
+    if (!window.ghostwriter) return undefined;
     try {
-      return await window.ghosttype.getDeviceId();
+      return await window.ghostwriter.getDeviceId();
     } catch {
       return undefined;
     }

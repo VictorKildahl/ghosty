@@ -2,17 +2,17 @@
 
 import { formatShortcut } from "@/lib/ghost-helpers";
 import type {
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
-} from "@/types/ghosttype";
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
+} from "@/types/ghostwriter";
 import { AI_MODEL_OPTIONS, DEFAULT_AI_MODEL } from "@/types/models";
 import { useCallback, useEffect, useState } from "react";
 import { ToggleRow } from "./settings-toggle-row";
 
 export type SettingsGeneralViewProps = {
-  settings: GhosttypeSettings | null;
+  settings: GhostwriterSettings | null;
   isAdmin: boolean;
-  onUpdateSettings: (patch: GhosttypeSettingsUpdate) => void;
+  onUpdateSettings: (patch: GhostwriterSettingsUpdate) => void;
 };
 
 export function SettingsGeneralView({
@@ -28,16 +28,16 @@ export function SettingsGeneralView({
   );
 
   useEffect(() => {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
 
-    const unsubSettings = window.ghosttype.onSettings(() => {
+    const unsubSettings = window.ghostwriter.onSettings(() => {
       setShortcutCapture(false);
       setCapturePreview("Press new shortcut...");
       setToggleShortcutCapture(false);
       setToggleCapturePreview("Press new shortcut...");
     });
 
-    const unsubPreview = window.ghosttype.onShortcutPreview((preview) => {
+    const unsubPreview = window.ghostwriter.onShortcutPreview((preview) => {
       setCapturePreview(preview);
       setToggleCapturePreview(preview);
     });
@@ -49,9 +49,9 @@ export function SettingsGeneralView({
   }, []);
 
   const beginShortcutCapture = useCallback(async () => {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      await window.ghosttype.startShortcutCapture("shortcut");
+      await window.ghostwriter.startShortcutCapture("shortcut");
       setShortcutCapture(true);
       setCapturePreview("Press new shortcut...");
     } catch {
@@ -60,16 +60,16 @@ export function SettingsGeneralView({
   }, []);
 
   const endShortcutCapture = useCallback(async () => {
-    if (!window.ghosttype) return;
-    await window.ghosttype.stopShortcutCapture();
+    if (!window.ghostwriter) return;
+    await window.ghostwriter.stopShortcutCapture();
     setShortcutCapture(false);
     setCapturePreview("Press new shortcut...");
   }, []);
 
   const beginToggleShortcutCapture = useCallback(async () => {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     try {
-      await window.ghosttype.startShortcutCapture("toggleShortcut");
+      await window.ghostwriter.startShortcutCapture("toggleShortcut");
       setToggleShortcutCapture(true);
       setToggleCapturePreview("Press new shortcut...");
     } catch {
@@ -78,8 +78,8 @@ export function SettingsGeneralView({
   }, []);
 
   const endToggleShortcutCapture = useCallback(async () => {
-    if (!window.ghosttype) return;
-    await window.ghosttype.stopShortcutCapture();
+    if (!window.ghostwriter) return;
+    await window.ghostwriter.stopShortcutCapture();
     setToggleShortcutCapture(false);
     setToggleCapturePreview("Press new shortcut...");
   }, []);
@@ -90,7 +90,7 @@ export function SettingsGeneralView({
         <p className="text-sm font-medium text-ink">Hold-to-ghost shortcut</p>
         <div className="mt-2 flex items-center gap-2">
           <input
-            className="ghosttype-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="ghostwriter-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
             style={
               shortcutCapture
                 ? {
@@ -136,7 +136,7 @@ export function SettingsGeneralView({
         <p className="text-sm font-medium text-ink">Toggle-to-ghost shortcut</p>
         <div className="mt-2 flex items-center gap-2">
           <input
-            className="ghosttype-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="ghostwriter-code flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
             style={
               toggleShortcutCapture
                 ? {

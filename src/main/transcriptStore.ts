@@ -11,7 +11,7 @@ export type LocalTranscript = {
 const MAX_ENTRIES = 200;
 
 function storePath() {
-  return path.join(app.getPath("userData"), "ghosttype.transcripts.json");
+  return path.join(app.getPath("userData"), "ghostwriter.transcripts.json");
 }
 
 export async function loadLocalTranscripts(): Promise<LocalTranscript[]> {

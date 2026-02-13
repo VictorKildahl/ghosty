@@ -76,7 +76,7 @@ export const getOrCreate = mutation({
 
     // Create an anonymous user linked to this device
     return await ctx.db.insert("users", {
-      email: `device-${deviceId}@ghosttype.local`,
+      email: `device-${deviceId}@ghostwriter.local`,
       passwordHash: "",
       salt: "",
       deviceId,

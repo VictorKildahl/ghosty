@@ -3,9 +3,9 @@
 import { cn } from "@/lib/utils";
 import type {
   AudioDevice,
-  GhosttypeSettings,
-  GhosttypeSettingsUpdate,
-} from "@/types/ghosttype";
+  GhostwriterSettings,
+  GhostwriterSettingsUpdate,
+} from "@/types/ghostwriter";
 import {
   DEFAULT_TRANSCRIPTION_LANGUAGE,
   DEFAULT_TRANSCRIPTION_LANGUAGES,
@@ -22,8 +22,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Modal } from "./modal";
 
 export type SettingsVoiceViewProps = {
-  settings: GhosttypeSettings | null;
-  onUpdateSettings: (patch: GhosttypeSettingsUpdate) => Promise<void>;
+  settings: GhostwriterSettings | null;
+  onUpdateSettings: (patch: GhostwriterSettingsUpdate) => Promise<void>;
 };
 
 export function SettingsVoiceView({
@@ -49,12 +49,12 @@ export function SettingsVoiceView({
   const rawLevel = useRef(0);
 
   useEffect(() => {
-    if (!window.ghosttype) return;
-    window.ghosttype
+    if (!window.ghostwriter) return;
+    window.ghostwriter
       .getAudioDevices()
       .then(setAudioDevices)
       .catch(() => undefined);
-    window.ghosttype
+    window.ghostwriter
       .getDefaultInputDevice()
       .then(setDefaultDeviceName)
       .catch(() => undefined);
@@ -69,8 +69,8 @@ export function SettingsVoiceView({
   }, []);
 
   useEffect(() => {
-    if (!window.ghosttype) return;
-    const unsub = window.ghosttype.onMicLevel((level) => {
+    if (!window.ghostwriter) return;
+    const unsub = window.ghostwriter.onMicLevel((level) => {
       rawLevel.current = level;
     });
     return () => {
@@ -84,7 +84,7 @@ export function SettingsVoiceView({
 
   useEffect(() => {
     return () => {
-      window.ghosttype?.stopMicTest().catch(() => undefined);
+      window.ghostwriter?.stopMicTest().catch(() => undefined);
     };
   }, []);
 
@@ -194,9 +194,9 @@ export function SettingsVoiceView({
   }
 
   async function startMicTest() {
-    if (!window.ghosttype) return;
+    if (!window.ghostwriter) return;
     const mic = settings?.selectedMicrophone ?? null;
-    await window.ghosttype.startMicTest(mic);
+    await window.ghostwriter.startMicTest(mic);
     setMicTesting(true);
     rawLevel.current = 0;
     smoothedLevel.current = 0;
@@ -204,8 +204,8 @@ export function SettingsVoiceView({
   }
 
   async function stopMicTest() {
-    if (!window.ghosttype) return;
-    await window.ghosttype.stopMicTest();
+    if (!window.ghostwriter) return;
+    await window.ghostwriter.stopMicTest();
     setMicTesting(false);
     rawLevel.current = 0;
     if (rafId.current !== null) {

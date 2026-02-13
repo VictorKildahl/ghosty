@@ -92,7 +92,7 @@ export async function resolveActiveMicrophone(
   if (stillAvailable) return selectedMicrophone;
 
   console.log(
-    `[ghosttype] selected microphone "${selectedMicrophone}" not found, falling back to default`,
+    `[ghostwriter] selected microphone "${selectedMicrophone}" not found, falling back to default`,
   );
   return null;
 }
@@ -174,7 +174,7 @@ export function getDefaultInputDeviceName(): Promise<string | null> {
           // parse error – fall through
         }
         console.warn(
-          "[ghosttype] could not detect macOS default input device, using :0",
+          "[ghostwriter] could not detect macOS default input device, using :0",
         );
         resolve(null);
       },
@@ -196,7 +196,7 @@ export function startRecording(
   microphone?: string | null,
   onLevel?: (level: number) => void,
 ): RecordingSession {
-  const filePath = path.join(os.tmpdir(), `ghosttype-${Date.now()}.wav`);
+  const filePath = path.join(os.tmpdir(), `ghostwriter-${Date.now()}.wav`);
   const ffmpegBin = resolveFfmpegBinary();
 
   const audioInput = buildAudioInput(microphone ?? null);
