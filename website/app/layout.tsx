@@ -1,11 +1,15 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "GhostWriter — You talk, it writes.",
+  title: "GhostWriter - Just ghost write it.",
   description:
     "Voice-powered ghostwriting that turns speech into clean, ready-to-paste text. Works everywhere on your Mac.",
+  icons: {
+    icon: "/ghosty.png",
+    apple: "/ghosty.png",
+  },
   openGraph: {
-    title: "GhostWriter — You talk, it writes.",
+    title: "GhostWriter - Just ghost write it.",
     description:
       "Voice-powered ghostwriting that turns speech into clean, ready-to-paste text.",
     type: "website",
