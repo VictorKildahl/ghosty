@@ -102,6 +102,15 @@ export const getById = query({
   },
 });
 
+export const completeOnboarding = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("User not found.");
+    await ctx.db.patch(userId, { onboardingCompleted: true });
+  },
+});
+
 export const updatePreferences = mutation({
   args: {
     userId: v.id("users"),

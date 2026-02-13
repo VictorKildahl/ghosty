@@ -503,6 +503,18 @@ function setupIpc(controller: GhostingController) {
       setUserId(userId);
       isAdmin = admin ?? false;
       rebuildTrayMenu();
+
+      // Show overlay only when the user is logged in
+      if (userId) {
+        if (!overlayWindow) {
+          overlayWindow = createOverlayWindow();
+        }
+      } else {
+        if (overlayWindow) {
+          overlayWindow.destroy();
+          overlayWindow = null;
+        }
+      }
     },
   );
 
@@ -767,7 +779,7 @@ app.whenReady().then(async () => {
   );
 
   mainWindow = createMainWindow();
-  overlayWindow = createOverlayWindow();
+  // Overlay is created lazily when the user logs in (see auth:set-user-id handler)
   applyTrayVisibility(settings.showInTray);
   let lastGhostingPhase: string | null = null;
 

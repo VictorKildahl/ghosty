@@ -7,6 +7,7 @@
     "skipLibCheck": true,
     "allowJs": true,
     "outDir": "../node_modules/.cache/convex",
+    "types": ["node"],
     "paths": {
       "convex/*": ["../node_modules/convex/*"]
     }

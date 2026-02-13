@@ -41,6 +41,14 @@ function fullName(firstName?: string, lastName?: string) {
   return combined || undefined;
 }
 
+function generateVerificationToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export const signUp = mutation({
   args: {
     email: v.string(),
@@ -70,6 +78,7 @@ export const signUp = mutation({
 
     const parsedName = splitName(name);
     const displayName = fullName(parsedName.firstName, parsedName.lastName);
+    const verificationToken = generateVerificationToken();
 
     const userId = await ctx.db.insert("users", {
       email: normalizedEmail,
@@ -79,6 +88,8 @@ export const signUp = mutation({
       firstName: parsedName.firstName,
       lastName: parsedName.lastName,
       deviceId,
+      emailVerified: false,
+      verificationToken,
       createdAt: Date.now(),
     });
 
@@ -89,6 +100,8 @@ export const signUp = mutation({
       firstName: parsedName.firstName,
       lastName: parsedName.lastName,
       profileImageUrl: undefined,
+      onboardingCompleted: false,
+      emailVerified: false,
     };
   },
 });
@@ -134,6 +147,8 @@ export const login = mutation({
       lastName,
       profileImageUrl: user.profileImageUrl,
       isAdmin: user.isAdmin ?? false,
+      onboardingCompleted: user.onboardingCompleted ?? false,
+      emailVerified: user.emailVerified ?? false,
     };
   },
 });
@@ -154,6 +169,8 @@ export const validate = query({
       lastName,
       profileImageUrl: user.profileImageUrl,
       isAdmin: user.isAdmin ?? false,
+      onboardingCompleted: user.onboardingCompleted ?? false,
+      emailVerified: user.emailVerified ?? false,
     };
   },
 });

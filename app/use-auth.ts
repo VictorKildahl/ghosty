@@ -13,6 +13,8 @@ type AuthState = {
   lastName?: string;
   profileImageUrl?: string;
   isAdmin?: boolean;
+  onboardingCompleted?: boolean;
+  emailVerified?: boolean;
 };
 
 const STORAGE_KEY = "ghostwriter:auth";
@@ -80,7 +82,9 @@ export function useAuth() {
         auth.firstName !== validated.firstName ||
         auth.lastName !== validated.lastName ||
         auth.profileImageUrl !== validated.profileImageUrl ||
-        auth.isAdmin !== validated.isAdmin)
+        auth.isAdmin !== validated.isAdmin ||
+        auth.onboardingCompleted !== validated.onboardingCompleted ||
+        auth.emailVerified !== validated.emailVerified)
     ) {
       const updated: AuthState = {
         ...auth,
@@ -90,6 +94,8 @@ export function useAuth() {
         lastName: validated.lastName,
         profileImageUrl: validated.profileImageUrl,
         isAdmin: validated.isAdmin,
+        onboardingCompleted: validated.onboardingCompleted,
+        emailVerified: validated.emailVerified,
       };
       setAuth(updated);
       saveAuthToStorage(updated);
@@ -121,6 +127,8 @@ export function useAuth() {
         firstName: result.firstName,
         lastName: result.lastName,
         profileImageUrl: result.profileImageUrl,
+        onboardingCompleted: false,
+        emailVerified: false,
       };
       setAuth(authState);
       saveAuthToStorage(authState);
@@ -159,6 +167,8 @@ export function useAuth() {
         lastName: result.lastName,
         profileImageUrl: result.profileImageUrl,
         isAdmin: result.isAdmin,
+        onboardingCompleted: result.onboardingCompleted,
+        emailVerified: result.emailVerified,
       };
       setAuth(authState);
       saveAuthToStorage(authState);
