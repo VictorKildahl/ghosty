@@ -8,13 +8,15 @@ export const record = mutation({
     inputTokens: v.number(),
     outputTokens: v.number(),
     estimatedCost: v.optional(v.number()),
+    localDate: v.optional(v.string()), // "YYYY-MM-DD" in the user's local timezone
   },
   handler: async (
     ctx,
-    { userId, model, inputTokens, outputTokens, estimatedCost },
+    { userId, model, inputTokens, outputTokens, estimatedCost, localDate },
   ) => {
     const now = Date.now();
-    const date = new Date(now).toISOString().slice(0, 10);
+    // Use the client-supplied local date if provided, otherwise fall back to UTC
+    const date = localDate ?? new Date(now).toISOString().slice(0, 10);
 
     await ctx.db.insert("tokenUsage", {
       userId,

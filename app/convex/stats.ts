@@ -2,8 +2,11 @@ import { v } from "convex/values";
 import { query } from "./_generated/server";
 
 export const get = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
+  args: {
+    userId: v.id("users"),
+    localToday: v.optional(v.string()), // "YYYY-MM-DD" in the user's local timezone
+  },
+  handler: async (ctx, { userId, localToday }) => {
     // Get all daily stats for the user, ordered by date
     const allDays = await ctx.db
       .query("dailyStats")
@@ -24,7 +27,7 @@ export const get = query({
     }
 
     // Compute streaks
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localToday ?? new Date().toISOString().slice(0, 10);
     const dates = new Set(allDays.map((d) => d.date));
 
     let currentStreak = 0;

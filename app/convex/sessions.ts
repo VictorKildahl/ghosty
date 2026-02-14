@@ -11,6 +11,7 @@ export const record = mutation({
     rawText: v.optional(v.string()),
     cleanedText: v.optional(v.string()),
     appName: v.optional(v.string()),
+    localDate: v.optional(v.string()), // "YYYY-MM-DD" in the user's local timezone
   },
   handler: async (
     ctx,
@@ -23,10 +24,12 @@ export const record = mutation({
       rawText,
       cleanedText,
       appName,
+      localDate,
     },
   ) => {
     const now = Date.now();
-    const date = new Date(now).toISOString().slice(0, 10); // "YYYY-MM-DD"
+    // Use the client-supplied local date if provided, otherwise fall back to UTC
+    const date = localDate ?? new Date(now).toISOString().slice(0, 10);
 
     // Insert the session
     await ctx.db.insert("sessions", {

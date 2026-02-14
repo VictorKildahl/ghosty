@@ -10,6 +10,15 @@ import type {
   SessionEvent,
 } from "../types/ghostwriter";
 
+/** Return the current date in the user's local timezone as "YYYY-MM-DD". */
+function getLocalDate(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function useGhostStats(userId: Id<"users"> | null) {
   const recordSession = useMutation(api.sessions.record);
   const recordTokenUsage = useMutation(api.tokenUsage.record);
@@ -20,7 +29,10 @@ export function useGhostStats(userId: Id<"users"> | null) {
   );
 
   // Query stats (only when userId is available)
-  const stats = useQuery(api.stats.get, userId ? { userId } : "skip");
+  const stats = useQuery(
+    api.stats.get,
+    userId ? { userId, localToday: getLocalDate() } : "skip",
+  );
 
   // Load local transcripts and track settings
   useEffect(() => {
@@ -36,9 +48,11 @@ export function useGhostStats(userId: Id<"users"> | null) {
       .then(setLocalTranscripts)
       .catch(() => undefined);
 
-    const unsubscribe = window.ghostwriter.onSettings((s: GhostwriterSettings) => {
-      setShareTranscripts(s.shareTranscripts);
-    });
+    const unsubscribe = window.ghostwriter.onSettings(
+      (s: GhostwriterSettings) => {
+        setShareTranscripts(s.shareTranscripts);
+      },
+    );
 
     return unsubscribe;
   }, []);
@@ -47,12 +61,14 @@ export function useGhostStats(userId: Id<"users"> | null) {
   const trackSession = useCallback(
     async (session: SessionEvent) => {
       if (!userId) return;
+      const localDate = getLocalDate();
       await recordSession({
         userId,
         wordCount: session.wordCount,
         durationMs: session.durationMs,
         rawLength: session.rawLength,
         cleanedLength: session.cleanedLength,
+        localDate,
         ...(session.appName ? { appName: session.appName } : {}),
         ...(shareTranscripts
           ? { rawText: session.rawText, cleanedText: session.cleanedText }
@@ -67,6 +83,7 @@ export function useGhostStats(userId: Id<"users"> | null) {
           inputTokens: session.tokenUsage.inputTokens,
           outputTokens: session.tokenUsage.outputTokens,
           estimatedCost: session.tokenUsage.estimatedCost,
+          localDate,
         }).catch(() => undefined);
       }
 
