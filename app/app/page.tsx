@@ -3,7 +3,7 @@
 import { DictionaryView } from "@/app/components/dictionary-view";
 import { Header } from "@/app/components/header";
 import { HomeView } from "@/app/components/home-view";
-import { OnboardingView } from "@/app/components/onboarding-view";
+import { OnboardingModal } from "@/app/components/onboarding-modal";
 import {
   SettingsModal,
   type SettingsSection,
@@ -185,9 +185,7 @@ export default function Page() {
   }
 
   // --------------- Onboarding (not yet completed) ---------------
-  if (auth?.onboardingCompleted !== true) {
-    return <OnboardingView onComplete={handleOnboardingComplete} />;
-  }
+  const showOnboarding = auth?.onboardingCompleted !== true;
 
   // --------------- Authenticated app ---------------
   return (
@@ -239,6 +237,11 @@ export default function Page() {
           onSignOut={logout}
         />
       )}
+
+      <OnboardingModal
+        open={showOnboarding}
+        onComplete={handleOnboardingComplete}
+      />
     </div>
   );
 }

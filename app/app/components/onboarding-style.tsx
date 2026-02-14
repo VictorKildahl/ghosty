@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { StylePreferences, WritingStyle } from "@/types/ghostwriter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const WRITING_STYLES: {
   id: WritingStyle;
@@ -34,94 +34,93 @@ const WRITING_STYLES: {
 ];
 
 export function OnboardingStyle({
-  step,
-  totalSteps,
+  stylePreferences,
   onChoice,
 }: {
-  step: number;
-  totalSteps: number;
+  stylePreferences: StylePreferences | null;
   onChoice: (stylePreferences: StylePreferences) => void;
 }) {
-  const [selectedStyle, setSelectedStyle] = useState<WritingStyle>("casual");
+  const [selectedStyle, setSelectedStyle] = useState<WritingStyle>(
+    stylePreferences?.personal ?? "casual",
+  );
 
-  function handleContinue() {
-    // During onboarding, set the chosen style for every category as a starting default
+  // Fire the default choice on mount so parent always has a value
+  useEffect(() => {
+    if (!stylePreferences) {
+      onChoice({
+        personal: selectedStyle,
+        work: selectedStyle,
+        email: selectedStyle,
+        code: selectedStyle,
+        other: selectedStyle,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fire the choice whenever selection changes so the parent always has the latest
+  function handleSelect(style: WritingStyle) {
+    setSelectedStyle(style);
     onChoice({
-      personal: selectedStyle,
-      work: selectedStyle,
-      email: selectedStyle,
-      code: selectedStyle,
-      other: selectedStyle,
+      personal: style,
+      work: style,
+      email: style,
+      code: style,
+      other: style,
     });
   }
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-[#edf1eb] px-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-border bg-white p-8 shadow-soft">
-        <p className="mb-4 text-xs font-medium tracking-wide text-muted">
-          Step {step} of {totalSteps}
-        </p>
-
-        {/* Header */}
-        <div className="mb-8 flex flex-col items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="assets/ghosty.png" alt="Ghosty" className="h-12 w-12" />
-          <h1 className="text-xl font-semibold text-ink">
-            How do you like to write?
-          </h1>
-          <p className="text-sm text-muted">
-            Choose a style for your cleaned-up transcriptions.
-          </p>
-        </div>
-
-        {/* Style cards */}
-        <div className="mb-6 grid grid-cols-3 gap-4">
-          {WRITING_STYLES.map((style) => {
-            const isSelected = selectedStyle === style.id;
-            return (
-              <button
-                key={style.id}
-                type="button"
-                onClick={() => setSelectedStyle(style.id)}
-                className={cn(
-                  "flex flex-col items-start rounded-xl border-2 p-5 text-left transition hover:cursor-pointer",
-                  isSelected
-                    ? "border-accent bg-accent/5"
-                    : "border-border bg-white hover:border-accent/40",
-                )}
-              >
-                <span
-                  className={cn(
-                    "text-2xl font-semibold",
-                    style.id === "very-casual" ? "lowercase" : "",
-                    isSelected ? "text-accent" : "text-ink",
-                  )}
-                >
-                  {style.label}
-                </span>
-                <span className="mt-1 text-xs font-medium text-muted">
-                  {style.description}
-                </span>
-                <p className="mt-4 rounded-lg bg-sidebar p-3 text-xs leading-relaxed text-muted">
-                  {style.example}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent/90"
-          onClick={handleContinue}
-        >
-          Continue
-        </button>
-
-        <p className="mt-6 text-center text-xs text-muted">
-          You can change this later in Settings.
+    <div>
+      {/* Header */}
+      <div className="mb-6 flex flex-col items-center gap-2">
+        <h1 className="text-center font-serif text-2xl font-semibold text-ink">
+          How do you like to write?
+        </h1>
+        <p className="text-center text-sm text-muted">
+          Choose a default style for your cleaned-up transcriptions.
         </p>
       </div>
+
+      {/* Style cards */}
+      <div className="mb-4 grid grid-cols-3 gap-4">
+        {WRITING_STYLES.map((style) => {
+          const isSelected = selectedStyle === style.id;
+          return (
+            <button
+              key={style.id}
+              type="button"
+              onClick={() => handleSelect(style.id)}
+              className={cn(
+                "flex flex-col items-start rounded-xl border-2 p-5 text-left transition hover:cursor-pointer",
+                isSelected
+                  ? "border-accent bg-accent/5"
+                  : "border-border bg-white hover:border-accent/40",
+              )}
+            >
+              <span
+                className={cn(
+                  "text-2xl font-semibold",
+                  style.id === "very-casual" ? "lowercase" : "",
+                  isSelected ? "text-accent" : "text-ink",
+                )}
+              >
+                {style.label}
+              </span>
+              <span className="mt-1 text-xs font-medium text-muted">
+                {style.description}
+              </span>
+              <p className="mt-4 rounded-lg bg-sidebar p-3 text-xs leading-relaxed text-muted">
+                {style.example}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="text-center text-xs text-muted">
+        You can change this later in Settings.
+      </p>
     </div>
   );
 }

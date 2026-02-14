@@ -1,30 +1,27 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+
 export function OnboardingConsent({
-  step,
-  totalSteps,
+  shareTranscripts,
   onChoice,
 }: {
-  step: number;
-  totalSteps: number;
+  shareTranscripts: boolean;
   onChoice: (shareTranscripts: boolean) => void;
 }) {
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-[#edf1eb] px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-white p-8 shadow-soft">
-        <p className="mb-4 text-xs font-medium tracking-wide text-muted">
-          Step {step} of {totalSteps}
+    <div>
+      {/* Header */}
+      <div className="mb-6 flex flex-col items-center gap-2">
+        <h1 className="text-center font-serif text-2xl font-semibold text-ink">
+          Help improve GhostWriter?
+        </h1>
+        <p className="max-w-md text-center text-sm text-muted">
+          Choose whether to share your transcriptions to help us improve.
         </p>
+      </div>
 
-        {/* Header */}
-        <div className="mb-8 flex flex-col items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="assets/ghosty.png" alt="Ghosty" className="h-12 w-12" />
-          <h1 className="text-xl font-semibold text-ink">
-            Help improve GhostWriter?
-          </h1>
-        </div>
-
+      <div className="mx-auto max-w-md">
         <p className="mb-2 text-sm leading-relaxed text-muted">
           We&apos;d love to use your transcriptions to make GhostWriter more
           accurate over time. If you opt in, your raw and cleaned-up
@@ -40,17 +37,35 @@ export function OnboardingConsent({
         <div className="flex flex-col gap-3">
           <button
             type="button"
-            className="rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent/90"
+            className={cn(
+              "rounded-xl border-2 px-5 py-4 text-left text-sm font-medium transition hover:cursor-pointer",
+              shareTranscripts
+                ? "border-accent bg-accent/5 text-accent"
+                : "border-border text-ink hover:border-accent/40",
+            )}
             onClick={() => onChoice(true)}
           >
-            Yes, share my transcriptions
+            <span className="block text-base font-semibold">
+              Yes, share my transcriptions
+            </span>
+            <span className="mt-1 block text-xs font-normal text-muted">
+              Help improve speech recognition quality for everyone.
+            </span>
           </button>
           <button
             type="button"
-            className="rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-sidebar"
+            className={cn(
+              "rounded-xl border-2 px-5 py-4 text-left text-sm font-medium transition hover:cursor-pointer",
+              !shareTranscripts
+                ? "border-accent bg-accent/5 text-accent"
+                : "border-border text-ink hover:border-accent/40",
+            )}
             onClick={() => onChoice(false)}
           >
-            No thanks
+            <span className="block text-base font-semibold">No thanks</span>
+            <span className="mt-1 block text-xs font-normal text-muted">
+              Keep everything local on your Mac only.
+            </span>
           </button>
         </div>
 
